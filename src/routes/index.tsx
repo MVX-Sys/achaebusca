@@ -308,8 +308,19 @@ function capaFallback(cat: Categoria): string | null {
   return alvo.includes("regata") ? regataCapa.url : null;
 }
 
+const CATEGORIAS_HOME = ["calcados", "vestuarios", "acessorios"];
+
 function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; produtos: ProductListItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const categoriasVisiveis = useMemo(
+    () => categorias.filter((c) => CATEGORIAS_HOME.includes(c.slug)).sort((a, b) => {
+      const ia = CATEGORIAS_HOME.indexOf(a.slug);
+      const ib = CATEGORIAS_HOME.indexOf(b.slug);
+      return ia - ib;
+    }),
+    [categorias],
+  );
 
   // Para cada categoria: produto com maior estoque total -> imagem principal
   const capaPorCategoria = useMemo(() => {
@@ -334,21 +345,23 @@ function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; 
 
   useEffect(() => {
     let alive = true;
-    const paths = Object.values(capaPorCategoria);
+    const paths = categoriasVisiveis.map((c) => capaPorCategoria[c.id]).filter(Boolean);
     if (paths.length === 0) return;
     Promise.all(
-      Object.entries(capaPorCategoria).map(async ([catId, path]) => {
+      categoriasVisiveis.map(async (cat) => {
+        const path = capaPorCategoria[cat.id];
+        if (!path) return [cat.id, null] as const;
         const url = await getImageUrl(path, { width: 600, quality: 70 });
-        return [catId, url] as const;
+        return [cat.id, url] as const;
       }),
     ).then((pares) => {
       if (!alive) return;
-      setUrls(Object.fromEntries(pares.filter(([, u]) => !!u)));
+      setUrls(Object.fromEntries(pares.filter(([, u]) => !!u) as [string, string][]));
     });
     return () => {
       alive = false;
     };
-  }, [capaPorCategoria]);
+  }, [capaPorCategoria, categoriasVisiveis]);
 
 
   const scroll = (direction: 'left' | 'right') => {
@@ -389,7 +402,7 @@ function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; 
           ref={scrollRef}
           className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
         >
-          {categorias.map((cat) => (
+          {categoriasVisiveis.map((cat) => (
             <Link
               key={cat.id}
               to="/produtos"
