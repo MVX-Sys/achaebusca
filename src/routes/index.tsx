@@ -302,6 +302,11 @@ function ProductSection({ title, highlightIndex, products, subtitle, isPromo, em
   );
 }
 
+function capaFallback(cat: Categoria): string | null {
+  const alvo = `${cat.nome ?? ""} ${cat.slug ?? ""}`.toLowerCase();
+  return alvo.includes("regata") ? regataCapa.url : null;
+}
+
 function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; produtos: ProductListItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
