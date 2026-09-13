@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { CartDrawer } from "@/components/cart-drawer";
 import { ProductCard } from "@/components/product-card";
 import { listCategoriasFn, listProdutosFn } from "@/lib/products.functions";
+import regataCapa from "@/assets/regata-capa.jpg.asset.json";
 import { isEsgotado, type ProductListItem, type Categoria, getPromoInfo } from "@/lib/products";
 import { getSiteConfig } from "@/lib/config-site";
 import { getImageUrl } from "@/lib/storage";
@@ -302,6 +303,11 @@ function ProductSection({ title, highlightIndex, products, subtitle, isPromo, em
   );
 }
 
+function capaFallback(cat: Categoria): string | null {
+  const alvo = `${cat.nome ?? ""} ${cat.slug ?? ""}`.toLowerCase();
+  return alvo.includes("regata") ? regataCapa.url : null;
+}
+
 function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; produtos: ProductListItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -390,9 +396,9 @@ function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; 
               search={{ cat: cat.slug }}
               className="group relative flex aspect-video min-w-[240px] flex-none snap-start items-center justify-center overflow-hidden rounded-2xl bg-muted transition-all hover:ring-2 hover:ring-primary md:min-w-[300px]"
             >
-              {urls[cat.id] && (
+              {(urls[cat.id] || capaFallback(cat)) && (
                 <img
-                  src={urls[cat.id]}
+                  src={urls[cat.id] || capaFallback(cat)!}
                   alt={cat.nome}
                   loading="lazy"
                   decoding="async"
