@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { CartDrawer } from "@/components/cart-drawer";
 import { ProductCard } from "@/components/product-card";
 import { listCategoriasFn, listProdutosFn } from "@/lib/products.functions";
+import regataCapa from "@/assets/regata-capa.jpg.asset.json";
 import { isEsgotado, type ProductListItem, type Categoria, getPromoInfo } from "@/lib/products";
 import { getSiteConfig } from "@/lib/config-site";
 import { getImageUrl } from "@/lib/storage";
