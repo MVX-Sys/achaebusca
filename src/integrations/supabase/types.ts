@@ -343,6 +343,7 @@ export type Database = {
           nome: string
           novidade: boolean
           ordem: number
+          personalizacao_tipo: string | null
           preco: number
           preco_promocional: number | null
           promocao: boolean
@@ -359,6 +360,7 @@ export type Database = {
           nome: string
           novidade?: boolean
           ordem?: number
+          personalizacao_tipo?: string | null
           preco: number
           preco_promocional?: number | null
           promocao?: boolean
@@ -375,6 +377,7 @@ export type Database = {
           nome?: string
           novidade?: boolean
           ordem?: number
+          personalizacao_tipo?: string | null
           preco?: number
           preco_promocional?: number | null
           promocao?: boolean
