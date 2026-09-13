@@ -390,9 +390,9 @@ function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; 
               search={{ cat: cat.slug }}
               className="group relative flex aspect-video min-w-[240px] flex-none snap-start items-center justify-center overflow-hidden rounded-2xl bg-muted transition-all hover:ring-2 hover:ring-primary md:min-w-[300px]"
             >
-              {urls[cat.id] && (
+              {(urls[cat.id] || capaFallback(cat)) && (
                 <img
-                  src={urls[cat.id]}
+                  src={urls[cat.id] || capaFallback(cat)!}
                   alt={cat.nome}
                   loading="lazy"
                   decoding="async"
