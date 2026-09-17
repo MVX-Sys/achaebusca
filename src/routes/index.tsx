@@ -193,18 +193,6 @@ function HeroSection({ config }: { config?: any }) {
                 </motion.p>
               )}
               
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.8 }}
-              >
-                <Link
-                  to="/produtos"
-                  className="btn-shine mt-12 inline-block rounded-full bg-primary px-10 py-4 text-lg font-bold uppercase tracking-widest text-white shadow-premium transition-transform hover:scale-105 active:scale-95"
-                >
-                  Ver todos os produtos
-                </Link>
-              </motion.div>
             </div>
           </motion.div>
         ))}
