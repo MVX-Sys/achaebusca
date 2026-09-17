@@ -120,7 +120,7 @@ function HeroSection({ config }: { config?: any }) {
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section className="relative h-[85vh] min-h-[600px] w-full overflow-hidden bg-navy">
+    <section className="relative aspect-[2/1] w-full overflow-hidden bg-navy md:aspect-auto md:h-[85vh] md:min-h-[600px]">
       <AnimatePresence mode="wait">
         {slides.map((slide: any, index: number) => index === current && (
           <motion.div
@@ -140,13 +140,13 @@ function HeroSection({ config }: { config?: any }) {
                   loop 
                   muted 
                   playsInline 
-                  className="h-full w-full object-cover opacity-50"
+                  className="h-full w-full object-contain opacity-50 md:object-cover"
                 />
               ) : slide.tipo === 'image' && slide.media_url ? (
-                <img 
-                  src={slide.media_url} 
-                  alt={slide.titulo} 
-                  className="h-full w-full object-cover opacity-50"
+                <img
+                  src={slide.media_url}
+                  alt={slide.titulo}
+                  className="h-full w-full object-contain opacity-50 md:object-cover"
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchPriority={index === 0 ? "high" : "auto"}
                 />
