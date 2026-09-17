@@ -120,7 +120,7 @@ function HeroSection({ config }: { config?: any }) {
   const prevSlide = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section className="relative h-[62svh] min-h-[320px] w-full overflow-hidden bg-navy md:h-[85vh] md:min-h-[600px]">
+    <section className="relative aspect-[2/1] w-full overflow-hidden bg-navy md:aspect-auto md:h-[85vh] md:min-h-[600px]">
       <AnimatePresence mode="wait">
         {slides.map((slide: any, index: number) => index === current && (
           <motion.div
