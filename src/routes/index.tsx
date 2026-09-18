@@ -140,13 +140,13 @@ function HeroSection({ config }: { config?: any }) {
                   loop 
                   muted 
                   playsInline 
-                  className="h-full w-full object-contain opacity-50 md:object-cover"
+                  className="h-full w-full object-contain md:object-cover"
                 />
               ) : slide.tipo === 'image' && slide.media_url ? (
                 <img
                   src={slide.media_url}
                   alt={slide.titulo}
-                  className="h-full w-full object-contain opacity-50 md:object-cover"
+                  className="h-full w-full object-contain md:object-cover"
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchPriority={index === 0 ? "high" : "auto"}
                 />
@@ -160,8 +160,6 @@ function HeroSection({ config }: { config?: any }) {
                   />
                 </div>
               )}
-              {/* Overlay for better text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-navy/30 opacity-60" />
             </div>
 
             {/* Content */}
@@ -201,12 +199,12 @@ function HeroSection({ config }: { config?: any }) {
       {/* Navigation Controls */}
       {slides.length > 1 && (
         <>
-          <div className="absolute bottom-10 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3">
+          <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2">
             {slides.map((_: any, i: number) => (
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                className={`h-1.5 transition-all duration-300 rounded-full ${i === current ? 'w-8 bg-primary' : 'w-2 bg-white/30 hover:bg-white/50'}`}
+                className={`h-1 transition-all duration-300 rounded-full ${i === current ? 'w-5 bg-primary' : 'w-1.5 bg-white/30 hover:bg-white/50'}`}
                 aria-label={`Slide ${i + 1}`}
               />
             ))}
@@ -214,17 +212,17 @@ function HeroSection({ config }: { config?: any }) {
 
           <button
             onClick={prevSlide}
-            className="absolute left-6 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/20 bg-white/5 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 md:left-10"
+            className="absolute left-2 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/20 bg-white/5 p-1.5 text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 md:left-10 md:p-2"
             aria-label="Slide anterior"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute right-6 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/20 bg-white/5 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 md:right-10"
+            className="absolute right-2 top-1/2 z-30 -translate-y-1/2 rounded-full border border-white/20 bg-white/5 p-1.5 text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/40 md:right-10 md:p-2"
             aria-label="Próximo slide"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </>
       )}
