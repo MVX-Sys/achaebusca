@@ -1015,8 +1015,8 @@ function AdminProductsList() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground" title={p.hash_id}>
-                          {p.hash_id ? `${p.hash_id.substring(0, 8)}...` : '---'}
+                        <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono font-bold tracking-widest text-muted-foreground" title={p.hash_id}>
+                          {p.hash_id || '---'}
                         </code>
                       </td>
                       <td className="p-4 tabular-nums">{brl(p.preco)}</td>
