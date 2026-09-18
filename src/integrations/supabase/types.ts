@@ -563,6 +563,10 @@ export type Database = {
           phone: string
         }[]
       }
+      build_product_code: {
+        Args: { _categoria_id: string; _nome: string; _produto_id: string }
+        Returns: string
+      }
       decrement_stock: {
         Args: { amount: number; var_id: string }
         Returns: undefined
@@ -584,6 +588,7 @@ export type Database = {
         Returns: undefined
       }
       set_produtos_ordem: { Args: { _ids: string[] }; Returns: undefined }
+      slug_upper: { Args: { _txt: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "funcionario" | "user"
