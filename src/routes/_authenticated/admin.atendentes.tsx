@@ -153,25 +153,19 @@ function AtendentesPage() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: FormState) => {
+      const nome = data.nome.trim();
+      const whatsapp = data.whatsapp.replace(/\D/g, "");
+      const cargo = data.cargo.trim() || "Vendedor";
+      if (nome.length < 2) throw new Error("Informe um nome válido.");
+      if (whatsapp.length < 10)
+        throw new Error("WhatsApp inválido. Use DDI+DDD+número, ex: 5587991547820.");
       if (data.id) {
         return editAtendente({
-          data: {
-            id: data.id,
-            nome: data.nome,
-            whatsapp: data.whatsapp,
-            cargo: data.cargo,
-            foto_path: data.foto_path,
-            ativo: data.ativo,
-          },
+          data: { id: data.id, nome, whatsapp, cargo, foto_path: data.foto_path, ativo: data.ativo },
         });
       }
       return addAtendente({
-        data: {
-          nome: data.nome,
-          whatsapp: data.whatsapp,
-          cargo: data.cargo,
-          foto_path: data.foto_path,
-        },
+        data: { nome, whatsapp, cargo, foto_path: data.foto_path, ativo: data.ativo },
       });
     },
     onSuccess: (_r, vars) => {
@@ -190,15 +184,18 @@ function AtendentesPage() {
       qc.invalidateQueries({ queryKey: ["atendentes"] });
       toast.success("Atendente removido!");
     },
+    onError: (err: any) => toast.error(err?.message || "Não foi possível excluir o atendente."),
   });
 
   const toggleMutation = useMutation({
     mutationFn: (args: { id: string; ativo: boolean }) =>
       editAtendente({ data: { id: args.id, ativo: args.ativo } }),
-    onSuccess: () => {
+    onSuccess: (_r, vars) => {
       qc.invalidateQueries({ queryKey: ["admin", "atendentes"] });
       qc.invalidateQueries({ queryKey: ["atendentes"] });
+      toast.success(vars.ativo ? "Atendente ativado." : "Atendente desativado.");
     },
+    onError: (err: any) => toast.error(err?.message || "Não foi possível alterar o status."),
   });
 
   if (roleKind === "cliente") {
