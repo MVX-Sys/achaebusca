@@ -304,6 +304,16 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
       toast.error("Nome, preço e categoria são obrigatórios.");
       return;
     }
+    const codigoLimpo = codigoBase
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 3);
+    if (codigoLimpo.length !== 3) {
+      toast.error("Informe o código do produto com 3 caracteres (letras ou números).");
+      return;
+    }
     let precoPromoNum: number | null = null;
     let promoAteIso: string | null = null;
     if (promocao) {
