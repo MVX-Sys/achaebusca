@@ -686,7 +686,9 @@ function ProductPage() {
                   </div>
                 )}
 
-                <div className="rounded-2xl border border-border bg-card p-4">
+                <div
+                  className={`rounded-2xl border border-border bg-card p-4 ${gruposPerso.length === 0 ? "hidden" : ""}`}
+                >
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
                       type="checkbox"
