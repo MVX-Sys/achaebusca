@@ -152,7 +152,7 @@ export function SiteHeader() {
                   : "text-white/85 hover:bg-white/15 hover:text-white"
               }`}
             >
-              Todas
+              Todos os produtos
             </Link>
             {cats.map((c) => {
               const active = currentSearch?.cat === c.slug;
