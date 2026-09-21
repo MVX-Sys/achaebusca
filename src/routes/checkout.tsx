@@ -168,7 +168,8 @@ function CheckoutPage() {
         const perso = formatPersonalizacoes(i);
         const variacao = `Cor ${i.cor}, Tam ${i.tamanho}${perso ? `, PERSONALIZAÇÃO: ${perso}` : ""}`;
         const preco = itemPrecoEfetivo(i);
-        return `• ${i.quantidade}x ${i.nome} — ${variacao} — ${brl(preco)} (subtotal ${brl(preco * i.quantidade)})`;
+        const codigo = (i as any).codigo ? `[${(i as any).codigo}] ` : "";
+        return `• ${codigo}${i.quantidade}x ${i.nome} — ${variacao} — ${brl(preco)} (subtotal ${brl(preco * i.quantidade)})`;
       });
 
       const enderecoLinhas =

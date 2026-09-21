@@ -477,6 +477,29 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
                 className="input"
               />
             </Field>
+            <Field label="Código do produto * (3 caracteres)">
+              <input
+                value={codigoBase}
+                onChange={(e) =>
+                  setCodigoBase(
+                    e.target.value
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9]/g, "")
+                      .slice(0, 3),
+                  )
+                }
+                required
+                maxLength={3}
+                placeholder="Ex: CBI"
+                className="input font-mono uppercase tracking-widest"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                A 4ª letra é a inicial da cor e é adicionada automaticamente.
+                {codigoBase.length === 3 && ` Código final: ${codigoBase}${(cores[0]?.nome ?? "X").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 1) || "X"}`}
+              </p>
+            </Field>
             <Field label="Descrição">
               <textarea
                 value={descricao}

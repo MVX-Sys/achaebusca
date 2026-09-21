@@ -247,6 +247,7 @@ function ProductPage() {
         {
           variacaoId: v.id,
           produtoId: p.id,
+          codigo: (p as any).hash_id ?? null,
           nome: p.nome,
           cor: cor,
           hexCor: v.hex_cor,
