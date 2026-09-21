@@ -96,6 +96,7 @@ export function CartDrawer({ continueSearch }: { continueSearch?: { cat?: string
 
         {items.length > 0 && (
           <footer className="border-t border-border bg-card px-4 py-4 sm:px-5">
+            <ResumoQuantidades items={items} />
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
               <span>Subtotal</span>
               <span className="tabular-nums">{brl(total)}</span>
