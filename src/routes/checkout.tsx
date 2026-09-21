@@ -105,6 +105,11 @@ function CheckoutPage() {
       toast.error(`Valor mínimo para compra: ${brl(VALOR_MINIMO_COMPRA)}`);
       return;
     }
+    const wppDigits = whatsapp.replace(/\D/g, "");
+    if (wppDigits.length < 10 || wppDigits.length > 13) {
+      toast.error("Informe seu WhatsApp com DDD (ex.: 31 99999-9999).");
+      return;
+    }
     const erroPerso = validarPersonalizacao(items as any);
     if (erroPerso) {
       toast.error(erroPerso);
