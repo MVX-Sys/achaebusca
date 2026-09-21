@@ -33,10 +33,6 @@ export const OPCOES_SANDALIA_REGULAGEM: OpcaoPersonalizacao[] = [
   { id: "birken-calcanhar", label: "Calcanhar", preco: 1 },
 ];
 
-// Qualquer sandália pode ser mesclada do jeito do cliente (mínimo 10 pares)
-export const OPCOES_SANDALIA_MESCLADA: OpcaoPersonalizacao[] = [
-  { id: "sandalia-mesclada", label: "Mesclada do jeito do cliente", preco: 0 },
-];
 
 const norm = (s?: string | null) =>
   (s ?? "")
@@ -57,6 +53,12 @@ export function getGruposPersonalizacao(
   const nome = norm(produtoNome);
   const cat = norm(categoriaNome);
   const tipo = norm(personalizacaoTipo);
+
+  // Peças de vestuário sem personalização
+  const semPersonalizacao = ["moletom", "canguru", "careca", "regata", "oversized", "oversize"];
+  if (semPersonalizacao.some((t) => nome.includes(t) || tipo.includes(t))) {
+    return [];
+  }
 
   if (nome.includes("case") || nome.includes("estojo")) {
     return [{ titulo: "Case", opcoes: OPCOES_CASE }];
@@ -96,7 +98,6 @@ export function getGruposPersonalizacao(
       comRegulagem
         ? { titulo: "Sandália com regulagem", opcoes: OPCOES_SANDALIA_REGULAGEM }
         : { titulo: "Sandália com pala", opcoes: OPCOES_SANDALIA_PALA },
-      { titulo: "Mesclagem", opcoes: OPCOES_SANDALIA_MESCLADA },
     ];
   }
 
