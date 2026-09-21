@@ -65,6 +65,10 @@ export function getGruposPersonalizacao(
     return [];
   }
 
+  if (nome.includes("bermuda") || tipo.includes("bermuda")) {
+    return [{ titulo: "Personalização", opcoes: OPCOES_BERMUDA }];
+  }
+
   if (nome.includes("case") || nome.includes("estojo")) {
     return [{ titulo: "Case", opcoes: OPCOES_CASE }];
   }
