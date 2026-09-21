@@ -33,6 +33,11 @@ export const OPCOES_SANDALIA_REGULAGEM: OpcaoPersonalizacao[] = [
   { id: "birken-calcanhar", label: "Calcanhar", preco: 1 },
 ];
 
+// Qualquer sandália pode ser mesclada do jeito do cliente (mínimo 10 pares)
+export const OPCOES_SANDALIA_MESCLADA: OpcaoPersonalizacao[] = [
+  { id: "sandalia-mesclada", label: "Mesclada do jeito do cliente", preco: 0 },
+];
+
 const norm = (s?: string | null) =>
   (s ?? "")
     .normalize("NFD")
@@ -47,9 +52,11 @@ export type GrupoPersonalizacao = {
 export function getGruposPersonalizacao(
   produtoNome?: string | null,
   categoriaNome?: string | null,
+  personalizacaoTipo?: string | null,
 ): GrupoPersonalizacao[] {
   const nome = norm(produtoNome);
   const cat = norm(categoriaNome);
+  const tipo = norm(personalizacaoTipo);
 
   if (nome.includes("case") || nome.includes("estojo")) {
     return [{ titulo: "Case", opcoes: OPCOES_CASE }];
@@ -58,7 +65,7 @@ export function getGruposPersonalizacao(
     return [{ titulo: "Lenço", opcoes: OPCOES_LENCO }];
   }
 
-  if (cat.includes("oculos") || nome.includes("oculos")) {
+  if (cat.includes("oculos") || nome.includes("oculos") || tipo.includes("oculos")) {
     return [
       { titulo: "Óculos", opcoes: OPCOES_OCULOS },
       { titulo: "Case", opcoes: OPCOES_CASE },
@@ -66,19 +73,31 @@ export function getGruposPersonalizacao(
     ];
   }
 
-  const ehSandalia =
-    cat.includes("chinelo") ||
-    cat.includes("sandal") ||
-    nome.includes("chinelo") ||
-    nome.includes("sandal") ||
-    nome.includes("birken") ||
-    nome.includes("slide");
+  const termosSandalia = [
+    "chinelo",
+    "sandal",
+    "birken",
+    "slide",
+    "papete",
+    "rasteir",
+    "tamanco",
+    "havaian",
+    "flip",
+    "anabela",
+  ];
+  const ehSandalia = termosSandalia.some(
+    (t) => cat.includes(t) || nome.includes(t) || tipo.includes(t),
+  );
 
   if (ehSandalia) {
-    const comRegulagem = nome.includes("birken") || nome.includes("regulagem");
-    return comRegulagem
-      ? [{ titulo: "Sandália com regulagem", opcoes: OPCOES_SANDALIA_REGULAGEM }]
-      : [{ titulo: "Sandália com pala", opcoes: OPCOES_SANDALIA_PALA }];
+    const comRegulagem =
+      nome.includes("birken") || nome.includes("regulagem") || tipo.includes("birken");
+    return [
+      comRegulagem
+        ? { titulo: "Sandália com regulagem", opcoes: OPCOES_SANDALIA_REGULAGEM }
+        : { titulo: "Sandália com pala", opcoes: OPCOES_SANDALIA_PALA },
+      { titulo: "Mesclagem", opcoes: OPCOES_SANDALIA_MESCLADA },
+    ];
   }
 
   return [];

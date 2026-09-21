@@ -97,8 +97,13 @@ function ProductPage() {
   );
 
   const gruposPerso = useMemo(
-    () => getGruposPersonalizacao(p?.nome, categoriaAtual?.nome),
-    [p?.nome, categoriaAtual],
+    () =>
+      getGruposPersonalizacao(
+        p?.nome,
+        categoriaAtual?.nome,
+        (p as any)?.personalizacao_tipo ?? null,
+      ),
+    [p, categoriaAtual],
   );
   const opcoesPersoSelecionadas = useMemo(
     () =>
