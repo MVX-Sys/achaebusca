@@ -116,7 +116,6 @@ function CheckoutPage() {
   const fnCreateOrder = useServerFn(createOrder);
   const fetchAtendentes = useServerFn(listAtendentes);
   const fnValidateCoupon = useServerFn(validateCupon);
-  const { session } = useAuth();
 
   const { data: dbAtendentes, isLoading: loadingAtendentes } = useQuery({
     queryKey: ["atendentes"],
