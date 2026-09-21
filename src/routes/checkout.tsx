@@ -39,6 +39,7 @@ type FormaPagamento = "PIX";
 function CheckoutPage() {
   const { items, total, clear } = useCart();
   const nav = useNavigate();
+  const { session } = useAuth();
 
   const [formaEnvio, setFormaEnvio] = useState<FormaEnvio>("ENTREGA");
   const [formaPagamento] = useState<FormaPagamento>("PIX");
@@ -47,6 +48,9 @@ function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [whatsapp, setWhatsapp] = useState(
+    () => (session?.user?.user_metadata?.whatsapp as string) || "",
+  );
 
   const { discountAmount, itemsWithDiscount } = useMemo(() => {
     if (!appliedCoupon) return { discountAmount: 0, itemsWithDiscount: new Set<string>() };
