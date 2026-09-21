@@ -183,7 +183,7 @@ function CheckoutPage() {
         "*Itens*",
         ...linhas,
         "",
-        `*Total dos itens:* ${brl(total)}`,
+        `*Total de itens:* ${items.reduce((s, i) => s + i.quantidade, 0)}`,
         appliedCoupon ? `*Cupom aplicado:* ${appliedCoupon.codigo}` : "",
         appliedCoupon ? `*Desconto:* -${brl(discountAmount)}` : "",
 
