@@ -1009,7 +1009,31 @@ function AdminProductsList() {
                   return (
                     <tr
                       key={p.id}
-                      className={`border-t border-border transition-colors hover:bg-muted/40 ${selectedIds.has(p.hash_id || p.id) ? 'bg-primary/5' : ''}`}
+                      draggable={sort === "ordem" && !reordering}
+                      onDragStart={(e) => {
+                        setDragId(p.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", p.id);
+                      }}
+                      onDragOver={(e) => {
+                        if (sort !== "ordem" || !dragId || dragId === p.id) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (dragOverId !== p.id) setDragOverId(p.id);
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverId === p.id) setDragOverId(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const id = e.dataTransfer.getData("text/plain") || dragId;
+                        if (id) void soltarProduto(id, p.id);
+                      }}
+                      onDragEnd={() => {
+                        setDragId(null);
+                        setDragOverId(null);
+                      }}
+                      className={`border-t border-border transition-colors hover:bg-muted/40 ${selectedIds.has(p.hash_id || p.id) ? 'bg-primary/5' : ''} ${dragId === p.id ? 'opacity-40' : ''} ${dragOverId === p.id ? 'bg-primary/10 outline outline-2 outline-primary/60' : ''} ${sort === "ordem" ? 'cursor-grab active:cursor-grabbing' : ''}`}
                     >
                       <td className="p-4">
                         <button 
@@ -1076,6 +1100,13 @@ function AdminProductsList() {
                         <div className="flex justify-end gap-1">
                           {sort === "ordem" && (
                             <div className="mr-1 flex items-center">
+                              <span
+                                className="mr-1 cursor-grab text-muted-foreground/60 active:cursor-grabbing"
+                                title="Arraste para reordenar"
+                                aria-label="Arrastar para reordenar"
+                              >
+                                <GripVertical className="h-4 w-4" />
+                              </span>
                               <button
                                 onClick={() => moverProduto(p.id, -1)}
                                 disabled={reordering || idx === 0}
