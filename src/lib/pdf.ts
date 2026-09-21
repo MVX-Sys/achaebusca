@@ -230,7 +230,7 @@ export async function downloadProductPDF(p: ProductListItem, categoriaNome?: str
     y += 6;
   }
 
-  const grupos = getGruposPersonalizacao(p.nome, categoriaNome);
+  const grupos = getGruposPersonalizacao(p.nome, categoriaNome, (p as any).personalizacao_tipo ?? null);
   if (grupos.length) {
     if (y > 250) {
       footer(doc);
