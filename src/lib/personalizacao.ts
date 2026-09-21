@@ -33,6 +33,11 @@ export const OPCOES_SANDALIA_REGULAGEM: OpcaoPersonalizacao[] = [
   { id: "birken-calcanhar", label: "Calcanhar", preco: 1 },
 ];
 
+// Qualquer sandália pode ser mesclada do jeito do cliente (mínimo 10 pares)
+export const OPCOES_SANDALIA_MESCLADA: OpcaoPersonalizacao[] = [
+  { id: "sandalia-mesclada", label: "Mesclada do jeito do cliente", preco: 0 },
+];
+
 const norm = (s?: string | null) =>
   (s ?? "")
     .normalize("NFD")
