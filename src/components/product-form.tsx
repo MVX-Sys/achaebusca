@@ -350,6 +350,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
         descricao: descricao || null,
         preco,
         categoria_id: categoriaId,
+        codigo_base: codigoLimpo,
         marca: null,
         novidade,
         promocao,
