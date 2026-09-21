@@ -7,7 +7,7 @@ import { useCart, itemPrecoEfetivo, validarPersonalizacao, formatPersonalizacoes
 import { brl } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import { BRAND, VALOR_MINIMO_COMPRA } from "@/lib/config";
-import { ChevronLeft, MessageCircle, FileText, X, User, Ticket, Loader2, ShoppingBag } from "lucide-react";
+import { ChevronLeft, MessageCircle, FileText, X, User, Ticket, Loader2, ShoppingBag, Phone } from "lucide-react";
 import { downloadOrderPDF } from "@/lib/pdf";
 import { toast } from "sonner";
 import { createOrder } from "@/lib/orders.functions";
@@ -39,6 +39,7 @@ type FormaPagamento = "PIX";
 function CheckoutPage() {
   const { items, total, clear } = useCart();
   const nav = useNavigate();
+  const { session } = useAuth();
 
   const [formaEnvio, setFormaEnvio] = useState<FormaEnvio>("ENTREGA");
   const [formaPagamento] = useState<FormaPagamento>("PIX");
@@ -47,6 +48,9 @@ function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [whatsapp, setWhatsapp] = useState(
+    () => (session?.user?.user_metadata?.whatsapp as string) || "",
+  );
 
   const { discountAmount, itemsWithDiscount } = useMemo(() => {
     if (!appliedCoupon) return { discountAmount: 0, itemsWithDiscount: new Set<string>() };
@@ -101,6 +105,11 @@ function CheckoutPage() {
       toast.error(`Valor mínimo para compra: ${brl(VALOR_MINIMO_COMPRA)}`);
       return;
     }
+    const wppDigits = whatsapp.replace(/\D/g, "");
+    if (wppDigits.length < 10 || wppDigits.length > 13) {
+      toast.error("Informe seu WhatsApp com DDD (ex.: 31 99999-9999).");
+      return;
+    }
     const erroPerso = validarPersonalizacao(items as any);
     if (erroPerso) {
       toast.error(erroPerso);
@@ -112,7 +121,6 @@ function CheckoutPage() {
   const fnCreateOrder = useServerFn(createOrder);
   const fetchAtendentes = useServerFn(listAtendentes);
   const fnValidateCoupon = useServerFn(validateCupon);
-  const { session } = useAuth();
 
   const { data: dbAtendentes, isLoading: loadingAtendentes } = useQuery({
     queryKey: ["atendentes"],
@@ -138,8 +146,8 @@ function CheckoutPage() {
           total: valorFinal,
           forma_envio: formaEnvio,
           atendente_id: atendente.id,
-          cliente_nome: session?.user.email?.split("@")[0] || "Cliente",
-          cliente_whatsapp: session?.user.phone || "",
+          cliente_nome: session?.user.user_metadata?.nome || session?.user.email?.split("@")[0] || "Cliente",
+          cliente_whatsapp: whatsapp.replace(/\D/g, ""),
           forma_pagamento: formaPagamento,
           observacoes: observacoes,
           cupom_codigo: appliedCoupon?.codigo,
@@ -163,6 +171,9 @@ function CheckoutPage() {
 
         }
       });
+
+      // Salva o WhatsApp na conta para os próximos pedidos sairem preenchidos.
+      supabase.auth.updateUser({ data: { whatsapp: whatsapp.replace(/\D/g, "") } }).catch(() => {});
 
       const DIV = "━━━━━━━━━━━━━━━";
 
@@ -311,6 +322,19 @@ function CheckoutPage() {
                 <ReadonlyInput value={brl(total)} />
               </Field>
             </div>
+
+            <Field label="Seu WhatsApp:" required className="mt-4">
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="31 99999-9999"
+                  className="input pl-11"
+                />
+              </div>
+            </Field>
 
             <Field label="Forma de Envio:" required className="mt-4">
               <select
