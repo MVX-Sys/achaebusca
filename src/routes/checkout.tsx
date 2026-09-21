@@ -172,6 +172,9 @@ function CheckoutPage() {
         }
       });
 
+      // Salva o WhatsApp na conta para os próximos pedidos sairem preenchidos.
+      supabase.auth.updateUser({ data: { whatsapp: whatsapp.replace(/\D/g, "") } }).catch(() => {});
+
       const DIV = "━━━━━━━━━━━━━━━";
 
       const linhas = items.flatMap((i, idx) => {
