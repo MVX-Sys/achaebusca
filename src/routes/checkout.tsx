@@ -164,39 +164,56 @@ function CheckoutPage() {
         }
       });
 
-      const linhas = items.map((i) => {
+      const DIV = "━━━━━━━━━━━━━━━";
+
+      const linhas = items.flatMap((i, idx) => {
         const perso = formatPersonalizacoes(i);
-        const variacao = `Cor ${i.cor}, Tam ${i.tamanho}${perso ? `, PERSONALIZAÇÃO: ${perso}` : ""}`;
         const preco = itemPrecoEfetivo(i);
-        const codigo = (i as any).codigo ? `[${(i as any).codigo}] ` : "";
-        return `• ${codigo}${i.quantidade}x ${i.nome} — ${variacao} — ${brl(preco)} (subtotal ${brl(preco * i.quantidade)})`;
+        const codigo = (i as any).codigo ? ` (${(i as any).codigo})` : "";
+        return [
+          `*${idx + 1}. ${i.nome}*${codigo}`,
+          `   • Cor: ${i.cor}`,
+          `   • Tamanho: ${i.tamanho}`,
+          ...(perso ? [`   • Personalização: ${perso}`] : []),
+          `   • Quantidade: ${i.quantidade}x ${brl(preco)}`,
+          `   • Subtotal: ${brl(preco * i.quantidade)}`,
+          "",
+        ];
       });
 
-      const enderecoLinhas =
-        formaEnvio === "ENTREGA"
-          ? ["", "*Entrega*", "Forma de entrega: TRANSPORTADORA A COMBINAR"]
-          : ["", "*Entrega*", "Retirada no local"];
+      const totalPecas = items.reduce((s, i) => s + i.quantidade, 0);
 
       const msgContent = [
         `Olá, ${atendente.nome}! Gostaria de fazer o seguinte pedido:`,
         "",
-        "*Itens*",
+        DIV,
+        `*🛍️ ITENS DO PEDIDO* (${items.length})`,
+        DIV,
+        "",
         ...linhas,
+        DIV,
+        "*💰 RESUMO*",
+        DIV,
+        `Total de peças: ${totalPecas}`,
+        appliedCoupon ? `Cupom aplicado: ${appliedCoupon.codigo}` : "",
+        appliedCoupon ? `Desconto: -${brl(discountAmount)}` : "",
+        `*Total final: ${brl(valorFinal)}*`,
         "",
-        `*Total de itens:* ${items.reduce((s, i) => s + i.quantidade, 0)}`,
-        appliedCoupon ? `*Cupom aplicado:* ${appliedCoupon.codigo}` : "",
-        appliedCoupon ? `*Desconto:* -${brl(discountAmount)}` : "",
-
-        `*Total final:* ${brl(valorFinal)}`,
-        "",
-        `*Forma de envio:* ${formaEnvio === "ENTREGA" ? "ENTREGA (Transportadora a combinar)" : "Retirada no local"}`,
-        ...enderecoLinhas,
-        "",
-        `*Forma de pagamento:* ${formaPagamento}`,
-        observacoes ? `\n*Observações*\n${observacoes}` : "",
+        DIV,
+        "*🚚 ENTREGA E PAGAMENTO*",
+        DIV,
+        `Forma de envio: ${formaEnvio === "ENTREGA" ? "Entrega (transportadora a combinar)" : "Retirada no local"}`,
+        `Forma de pagamento: ${formaPagamento}`,
+        observacoes ? "" : "",
+        observacoes ? DIV : "",
+        observacoes ? "*📝 OBSERVAÇÕES*" : "",
+        observacoes ? DIV : "",
+        observacoes ? observacoes : "",
       ]
-        .filter(Boolean)
-        .join("\n");
+        .filter((l) => l !== "" || true)
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
 
       const encodedMsg = encodeURIComponent(msgContent);
       const whatsappUrl = `https://wa.me/${atendente.whatsapp.replace(/\D/g, "")}?text=${encodedMsg}`;
