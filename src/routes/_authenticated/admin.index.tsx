@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listProdutos, listCategorias, isEsgotado } from "@/lib/products";
 import { getImageUrl } from "@/lib/storage";
 import { brl } from "@/lib/format";
-import { Pencil, Trash2, Plus, Package, PackageX, PackageCheck, Search, X, SlidersHorizontal, Eye, QrCode, Loader2, ShoppingBag, Settings, Video, Image as ImageIcon, Type, Copy, CheckSquare, Square, MoreHorizontal, EyeOff, Ticket, Play, Tags, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, Trash2, Plus, Package, PackageX, PackageCheck, Search, X, SlidersHorizontal, Eye, QrCode, Loader2, ShoppingBag, Settings, Video, Image as ImageIcon, Type, Copy, CheckSquare, Square, MoreHorizontal, EyeOff, Ticket, Play, Tags, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 import { BrowserMultiFormatReader } from "@zxing/library";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
@@ -237,6 +237,35 @@ function AdminProductsList() {
   }, [produtos, q, categoriaId, cor, tamanho, status, novidade, promocao, precoMin, precoMax, sort]);
 
   const [reordering, setReordering] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const salvarOrdem = async (
+    base: typeof produtos,
+    item: (typeof produtos)[number],
+  ) => {
+    const ids = base.map((p) => p.id);
+    const { error } = await supabase.rpc("set_produtos_ordem", { _ids: ids });
+    if (error) throw error;
+
+    // Atualização otimista imediata
+    qc.setQueryData<typeof produtos>(["admin-produtos"], (old) =>
+      (old ?? []).map((p) => {
+        const i = ids.indexOf(p.id);
+        return i >= 0 ? { ...p, ordem: i + 1 } : p;
+      }),
+    );
+
+    void logAudit({
+      acao: "editar",
+      entidade: "produto",
+      entidade_id: item.id,
+      descricao: `Alterou a ordem de exibição do produto "${item.nome}"`,
+    });
+    qc.invalidateQueries({ queryKey: ["admin-produtos"] });
+    qc.invalidateQueries({ queryKey: ["produtos"] });
+    toast.success("Ordem atualizada.");
+  };
 
   const moverProduto = async (id: string, dir: -1 | 1) => {
     if (sort !== "ordem" || reordering) return;
@@ -256,28 +285,32 @@ function AdminProductsList() {
       if (from < 0 || to < 0) return;
       base.splice(from, 1);
       base.splice(to, 0, item);
-      const ids = base.map((p) => p.id);
+      await salvarOrdem(base, item);
+    } catch (e) {
+      toast.error("Não foi possível alterar a ordem.");
+    } finally {
+      setReordering(false);
+    }
+  };
 
-      const { error } = await supabase.rpc("set_produtos_ordem", { _ids: ids });
-      if (error) throw error;
-
-      // Atualização otimista imediata
-      qc.setQueryData<typeof produtos>(["admin-produtos"], (old) =>
-        (old ?? []).map((p) => {
-          const i = ids.indexOf(p.id);
-          return i >= 0 ? { ...p, ordem: i + 1 } : p;
-        }),
+  const soltarProduto = async (id: string, alvoId: string) => {
+    setDragId(null);
+    setDragOverId(null);
+    if (sort !== "ordem" || reordering || id === alvoId) return;
+    const item = produtos.find((p) => p.id === id);
+    const alvo = produtos.find((p) => p.id === alvoId);
+    if (!item || !alvo) return;
+    setReordering(true);
+    try {
+      const base = [...produtos].sort(
+        (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0),
       );
-
-      void logAudit({
-        acao: "editar",
-        entidade: "produto",
-        entidade_id: id,
-        descricao: `Alterou a ordem de exibição do produto "${item.nome}"`,
-      });
-      qc.invalidateQueries({ queryKey: ["admin-produtos"] });
-      qc.invalidateQueries({ queryKey: ["produtos"] });
-      toast.success("Ordem atualizada.");
+      const from = base.findIndex((p) => p.id === id);
+      const to = base.findIndex((p) => p.id === alvoId);
+      if (from < 0 || to < 0) return;
+      base.splice(from, 1);
+      base.splice(to, 0, item);
+      await salvarOrdem(base, item);
     } catch (e) {
       toast.error("Não foi possível alterar a ordem.");
     } finally {
