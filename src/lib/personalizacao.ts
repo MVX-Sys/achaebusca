@@ -98,7 +98,6 @@ export function getGruposPersonalizacao(
       comRegulagem
         ? { titulo: "Sandália com regulagem", opcoes: OPCOES_SANDALIA_REGULAGEM }
         : { titulo: "Sandália com pala", opcoes: OPCOES_SANDALIA_PALA },
-      { titulo: "Mesclagem", opcoes: OPCOES_SANDALIA_MESCLADA },
     ];
   }
 
