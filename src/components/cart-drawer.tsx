@@ -96,6 +96,7 @@ export function CartDrawer({ continueSearch }: { continueSearch?: { cat?: string
 
         {items.length > 0 && (
           <footer className="border-t border-border bg-card px-4 py-4 sm:px-5">
+            <ResumoQuantidades items={items} />
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
               <span>Subtotal</span>
               <span className="tabular-nums">{brl(total)}</span>
@@ -144,6 +145,59 @@ export function CartDrawer({ continueSearch }: { continueSearch?: { cat?: string
         )}
       </aside>
     </>
+  );
+}
+
+function ResumoQuantidades({ items }: { items: any[] }) {
+  const totalPecas = items.reduce((s, i) => s + i.quantidade, 0);
+
+  const agrupar = (fn: (i: any) => string) => {
+    const m = new Map<string, number>();
+    for (const i of items) {
+      const k = fn(i) || "Sem informação";
+      m.set(k, (m.get(k) ?? 0) + i.quantidade);
+    }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+
+  const porCategoria = agrupar((i) => i.categoriaNome);
+  const porCor = agrupar((i) => i.cor);
+  const porTamanho = agrupar((i) => (i.tamanho ? `Tam ${i.tamanho}` : ""));
+
+  const Bloco = ({ titulo, dados }: { titulo: string; dados: [string, number][] }) => (
+    <div>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {titulo}
+      </p>
+      <ul className="space-y-0.5">
+        {dados.map(([k, v]) => (
+          <li key={k} className="flex items-center justify-between gap-2 text-xs">
+            <span className="truncate text-muted-foreground">{k}</span>
+            <span className="shrink-0 font-semibold tabular-nums">{v}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  return (
+    <details className="mb-3 rounded-xl border border-border bg-background px-3 py-2">
+      <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold">
+        <span>Resumo de quantidades</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] tabular-nums text-muted-foreground">
+          {totalPecas} {totalPecas === 1 ? "item" : "itens"}
+        </span>
+      </summary>
+      <div className="mt-3 space-y-3">
+        <Bloco titulo="Por categoria" dados={porCategoria} />
+        <Bloco titulo="Por cor" dados={porCor} />
+        <Bloco titulo="Por tamanho" dados={porTamanho} />
+        <div className="flex items-center justify-between border-t border-border pt-2 text-xs font-semibold">
+          <span>Total de peças</span>
+          <span className="tabular-nums">{totalPecas}</span>
+        </div>
+      </div>
+    </details>
   );
 }
 
