@@ -308,10 +308,9 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "")
-      .slice(0, 3);
-    if (codigoLimpo.length !== 3) {
-      toast.error("Informe o código do produto com 3 caracteres (letras ou números).");
+      .replace(/[^A-Z0-9]/g, "");
+    if (codigoLimpo.length === 0) {
+      toast.error("Informe o código do produto (letras ou números).");
       return;
     }
     let precoPromoNum: number | null = null;
