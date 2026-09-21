@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.refresh_product_hash_id() FROM anon, authenticated, public;

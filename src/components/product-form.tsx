@@ -114,6 +114,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState<number>(0);
   const [categoriaId, setCategoriaId] = useState<string>("");
+  const [codigoBase, setCodigoBase] = useState<string>("");
   
   const [novidade, setNovidade] = useState(false);
   const [promocao, setPromocao] = useState(false);
@@ -134,6 +135,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
     setDescricao(existing.descricao ?? "");
     setPreco(existing.preco);
     setCategoriaId(existing.categoria_id ?? "");
+    setCodigoBase(((existing as any).codigo_base as string) ?? (existing.hash_id ?? "").slice(0, 3));
     
     setNovidade(existing.novidade);
     setPromocao(existing.promocao);
@@ -302,6 +304,16 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
       toast.error("Nome, preço e categoria são obrigatórios.");
       return;
     }
+    const codigoLimpo = codigoBase
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 3);
+    if (codigoLimpo.length !== 3) {
+      toast.error("Informe o código do produto com 3 caracteres (letras ou números).");
+      return;
+    }
     let precoPromoNum: number | null = null;
     let promoAteIso: string | null = null;
     if (promocao) {
@@ -338,6 +350,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
         descricao: descricao || null,
         preco,
         categoria_id: categoriaId,
+        codigo_base: codigoLimpo,
         marca: null,
         novidade,
         promocao,
@@ -463,6 +476,29 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
                 placeholder="Ex: Camiseta Oversized Preta"
                 className="input"
               />
+            </Field>
+            <Field label="Código do produto * (3 caracteres)">
+              <input
+                value={codigoBase}
+                onChange={(e) =>
+                  setCodigoBase(
+                    e.target.value
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9]/g, "")
+                      .slice(0, 3),
+                  )
+                }
+                required
+                maxLength={3}
+                placeholder="Ex: CBI"
+                className="input font-mono uppercase tracking-widest"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                A 4ª letra é a inicial da cor e é adicionada automaticamente.
+                {codigoBase.length === 3 && ` Código final: ${codigoBase}${(cores[0]?.nome ?? "X").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 1) || "X"}`}
+              </p>
             </Field>
             <Field label="Descrição">
               <textarea

@@ -4,6 +4,7 @@ export type CartItem = {
   key: string; // variacaoId|cor|tamanho
   variacaoId: string;
   produtoId: string;
+  codigo?: string | null;
   nome: string;
   cor: string;
   hexCor: string;

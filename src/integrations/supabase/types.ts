@@ -335,6 +335,7 @@ export type Database = {
         Row: {
           ativo: boolean
           categoria_id: string | null
+          codigo_base: string
           criado_em: string
           descricao: string | null
           hash_id: string | null
@@ -352,6 +353,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           categoria_id?: string | null
+          codigo_base: string
           criado_em?: string
           descricao?: string | null
           hash_id?: string | null
@@ -369,6 +371,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           categoria_id?: string | null
+          codigo_base?: string
           criado_em?: string
           descricao?: string | null
           hash_id?: string | null
@@ -563,10 +566,6 @@ export type Database = {
           phone: string
         }[]
       }
-      build_product_code: {
-        Args: { _categoria_id: string; _nome: string; _produto_id: string }
-        Returns: string
-      }
       decrement_stock: {
         Args: { amount: number; var_id: string }
         Returns: undefined
@@ -583,6 +582,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      product_color_letter: { Args: { _produto_id: string }; Returns: string }
       set_pedido_status: {
         Args: { _pedido_id: string; _status: string }
         Returns: undefined
