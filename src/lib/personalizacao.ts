@@ -33,6 +33,11 @@ export const OPCOES_SANDALIA_REGULAGEM: OpcaoPersonalizacao[] = [
   { id: "birken-calcanhar", label: "Calcanhar", preco: 1 },
 ];
 
+// Bermudas
+export const OPCOES_BERMUDA: OpcaoPersonalizacao[] = [
+  { id: "bermuda-dtf", label: "DTF", preco: 3 },
+  { id: "bermuda-bordado", label: "Bordado", preco: 5 },
+];
 
 const norm = (s?: string | null) =>
   (s ?? "")
@@ -58,6 +63,10 @@ export function getGruposPersonalizacao(
   const semPersonalizacao = ["moletom", "canguru", "careca", "regata", "oversized", "oversize"];
   if (semPersonalizacao.some((t) => nome.includes(t) || tipo.includes(t))) {
     return [];
+  }
+
+  if (nome.includes("bermuda") || tipo.includes("bermuda")) {
+    return [{ titulo: "Personalização", opcoes: OPCOES_BERMUDA }];
   }
 
   if (nome.includes("case") || nome.includes("estojo")) {
