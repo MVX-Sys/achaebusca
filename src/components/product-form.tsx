@@ -114,6 +114,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState<number>(0);
   const [categoriaId, setCategoriaId] = useState<string>("");
+  const [codigoBase, setCodigoBase] = useState<string>("");
   
   const [novidade, setNovidade] = useState(false);
   const [promocao, setPromocao] = useState(false);
@@ -134,6 +135,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
     setDescricao(existing.descricao ?? "");
     setPreco(existing.preco);
     setCategoriaId(existing.categoria_id ?? "");
+    setCodigoBase(((existing as any).codigo_base as string) ?? (existing.hash_id ?? "").slice(0, 3));
     
     setNovidade(existing.novidade);
     setPromocao(existing.promocao);
