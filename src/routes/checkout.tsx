@@ -323,6 +323,19 @@ function CheckoutPage() {
               </Field>
             </div>
 
+            <Field label="Seu WhatsApp:" required className="mt-4">
+              <div className="relative">
+                <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="31 99999-9999"
+                  className="input pl-11"
+                />
+              </div>
+            </Field>
+
             <Field label="Forma de Envio:" required className="mt-4">
               <select
                 value={formaEnvio}
