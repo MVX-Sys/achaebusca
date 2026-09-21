@@ -7,7 +7,7 @@ import { useCart, itemPrecoEfetivo, validarPersonalizacao, formatPersonalizacoes
 import { brl } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import { BRAND, VALOR_MINIMO_COMPRA } from "@/lib/config";
-import { ChevronLeft, MessageCircle, FileText, X, User, Ticket, Loader2, ShoppingBag } from "lucide-react";
+import { ChevronLeft, MessageCircle, FileText, X, User, Ticket, Loader2, ShoppingBag, Phone } from "lucide-react";
 import { downloadOrderPDF } from "@/lib/pdf";
 import { toast } from "sonner";
 import { createOrder } from "@/lib/orders.functions";
