@@ -476,7 +476,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
                 className="input"
               />
             </Field>
-            <Field label="Código do produto * (3 caracteres)">
+            <Field label="Código do produto *">
               <input
                 value={codigoBase}
                 onChange={(e) =>
@@ -485,18 +485,16 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
                       .normalize("NFD")
                       .replace(/[\u0300-\u036f]/g, "")
                       .toUpperCase()
-                      .replace(/[^A-Z0-9]/g, "")
-                      .slice(0, 3),
+                      .replace(/[^A-Z0-9]/g, ""),
                   )
                 }
                 required
-                maxLength={3}
                 placeholder="Ex: CBI"
                 className="input font-mono uppercase tracking-widest"
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
-                A 4ª letra é a inicial da cor e é adicionada automaticamente.
-                {codigoBase.length === 3 && ` Código final: ${codigoBase}${(cores[0]?.nome ?? "X").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 1) || "X"}`}
+                A última letra é a inicial da cor e é adicionada automaticamente.
+                {codigoBase.length > 0 && ` Código final: ${codigoBase}${(cores[0]?.nome ?? "X").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 1) || "X"}`}
               </p>
             </Field>
             <Field label="Descrição">
