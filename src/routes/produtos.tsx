@@ -49,7 +49,7 @@ export const Route = createFileRoute("/produtos")({
 });
 
 function Home() {
-  const { cat, q } = Route.useSearch();
+  const { cat, q, promo } = Route.useSearch();
   const { data: categorias = [] } = useSuspenseQuery({
     queryKey: ["categorias"],
     queryFn: () => listCategoriasFn(),
