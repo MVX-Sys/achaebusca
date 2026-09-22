@@ -421,7 +421,7 @@ function SolicitacoesPage() {
 
                 <div className="flex flex-wrap items-center justify-end gap-1.5">
                   <button
-                    onClick={() => abrirWhatsApp(s, true)}
+                    onClick={() => abrirJanelaAviso(s)}
                     title="Avisar que foi reposto"
                     className="inline-flex items-center gap-1.5 rounded-full bg-success px-3 py-2 text-xs font-semibold text-success-foreground hover:opacity-90"
                   >
