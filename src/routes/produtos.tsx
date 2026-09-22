@@ -14,6 +14,7 @@ import { PackageSearch } from "lucide-react";
 const searchSchema = z.object({
   cat: z.string().optional(),
   q: z.string().optional(),
+  promo: z.boolean().optional(),
 });
 
 export const Route = createFileRoute("/produtos")({
