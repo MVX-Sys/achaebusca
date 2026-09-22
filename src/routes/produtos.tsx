@@ -85,7 +85,7 @@ function Home() {
     if (slug && catBySlug[slug])
       list = list.filter((p: ProductListItem) => p.categoria_id === catBySlug[slug]);
     if (filters.novidades) list = list.filter((p: ProductListItem) => p.novidade);
-    if (filters.promocao) list = list.filter((p: ProductListItem) => p.promocao);
+    if (filters.promocao || promo) list = list.filter((p: ProductListItem) => p.promocao);
     list = list.filter((p: ProductListItem) => p.preco <= filters.precoMax);
     switch (filters.ordem) {
       case "menor-preco":
@@ -99,13 +99,15 @@ function Home() {
         break;
     }
     return list;
-  }, [produtos, filters, cat, q, catBySlug]);
+  }, [produtos, filters, cat, q, promo, catBySlug]);
 
   const activeSlug = cat ?? filters.categoriaSlug;
   const heading = q
     ? `Resultados para "${q}"`
     : activeSlug && catBySlugName[activeSlug]
     ? catBySlugName[activeSlug]
+    : promo
+    ? "Promoções"
     : "Coleção";
   const subheading = q
     ? `${filtered.length} peça${filtered.length === 1 ? "" : "s"} encontrada${filtered.length === 1 ? "" : "s"}`
