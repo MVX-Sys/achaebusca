@@ -24,6 +24,7 @@ export function SiteHeader() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const currentSearch = useRouterState({ select: (r) => r.location.search }) as {
     cat?: string;
+    promo?: boolean;
   };
 
   const doSearch = (e: React.FormEvent) => {
