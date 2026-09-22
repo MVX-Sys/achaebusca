@@ -16,7 +16,7 @@ const downloadProductPDF = async (p: any) => {
   const { downloadProductPDF: fn } = await import("@/lib/pdf");
   return fn(p);
 };
-import { WHATSAPP_NUMBER, BRAND } from "@/lib/config";
+import { BRAND } from "@/lib/config";
 import { getRestockWhatsapp } from "@/lib/restock-number";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
