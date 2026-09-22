@@ -17,6 +17,7 @@ const downloadProductPDF = async (p: any) => {
   return fn(p);
 };
 import { WHATSAPP_NUMBER, BRAND } from "@/lib/config";
+import { getRestockWhatsapp } from "@/lib/restock-number";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -135,8 +136,9 @@ function ProductPage() {
       const msg = `Olá! Meu nome é ${nome}. Gostaria de ser avisado(a) por WhatsApp quando o produto *${p.nome}* (cor ${restock.cor}, tamanho ${restock.tam}) da ${BRAND} for reposto.${
         restockObs.trim() ? `\n\nObservação: ${restockObs.trim()}` : ""
       }`;
+      const destino = await getRestockWhatsapp();
       window.open(
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,
+        `https://wa.me/${destino}?text=${encodeURIComponent(msg)}`,
         "_blank",
         "noopener,noreferrer",
       );
