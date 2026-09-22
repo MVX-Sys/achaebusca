@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/config";
+import { getRestockWhatsapp, setRestockWhatsapp } from "@/lib/restock-number";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import {
@@ -15,6 +16,7 @@ import {
   RotateCcw,
   ExternalLink,
   Package,
+  Phone,
 } from "lucide-react";
 import { downloadTableCSV, downloadTablePDF, downloadTableXLSX } from "@/lib/pdf";
 import { ExportMenu } from "@/components/export-menu";
@@ -240,6 +242,7 @@ function SolicitacoesPage() {
             Contate clientes assim que houver reposição de estoque.
           </p>
         </div>
+        <NumeroAviso />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -569,6 +572,80 @@ function SolicitacoesPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function NumeroAviso() {
+  const qc = useQueryClient();
+  const { data: numero = "" } = useQuery({
+    queryKey: ["restock-whatsapp"],
+    queryFn: getRestockWhatsapp,
+  });
+  const [editando, setEditando] = useState(false);
+  const [valor, setValor] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  const salvar = async () => {
+    try {
+      setSalvando(true);
+      await setRestockWhatsapp(valor);
+      await qc.invalidateQueries({ queryKey: ["restock-whatsapp"] });
+      toast.success("Número de aviso atualizado.");
+      setEditando(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível salvar.");
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <Phone className="h-4 w-4" /> Número que recebe os avisos
+      </div>
+      {editando ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="5581997480691"
+            className="w-48 rounded-full border border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-foreground"
+          />
+          <button
+            onClick={salvar}
+            disabled={salvando}
+            className="rounded-full bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground disabled:opacity-60"
+          >
+            Salvar
+          </button>
+          <button
+            onClick={() => setEditando(false)}
+            className="rounded-full border border-input px-3 py-1.5 text-sm"
+          >
+            Cancelar
+          </button>
+        </div>
+      ) : (
+        <div className="mt-2 flex items-center gap-3">
+          <p className="font-display text-lg font-semibold tabular-nums">
+            {numero || "—"}
+          </p>
+          <button
+            onClick={() => {
+              setValor(numero);
+              setEditando(true);
+            }}
+            className="rounded-full border border-input px-3 py-1.5 text-sm"
+          >
+            Alterar
+          </button>
+        </div>
+      )}
+      <p className="mt-2 text-xs text-muted-foreground">
+        Com DDI e DDD, apenas números.
+      </p>
     </div>
   );
 }
