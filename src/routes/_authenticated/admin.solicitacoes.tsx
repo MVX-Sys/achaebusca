@@ -182,6 +182,50 @@ function SolicitacoesPage() {
     });
   };
 
+  // ---- Janela de seleção de destinatários ----
+  const [avisoBase, setAvisoBase] = useState<Solicitacao | null>(null);
+  const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [numeroExtra, setNumeroExtra] = useState("");
+
+  const candidatos = useMemo(() => {
+    if (!avisoBase) return [] as Solicitacao[];
+    return itens.filter(
+      (s) => s.produto_id === avisoBase.produto_id && s.status !== "cancelada",
+    );
+  }, [itens, avisoBase]);
+
+  const abrirJanelaAviso = (s: Solicitacao) => {
+    setAvisoBase(s);
+    setSelecionados([s.id]);
+    setNumeroExtra("");
+  };
+
+  const toggleSelecionado = (id: string) =>
+    setSelecionados((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
+  const enviarAvisos = () => {
+    if (!avisoBase) return;
+    const alvos = candidatos.filter((c) => selecionados.includes(c.id));
+    const extra = normalizeWhatsapp(numeroExtra);
+    if (alvos.length === 0 && !extra) {
+      return toast.error("Selecione ao menos um destinatário.");
+    }
+    alvos.forEach((c) => abrirWhatsApp(c, true));
+    if (extra) {
+      const msg = buildMessage(avisoBase, true);
+      window.open(
+        `https://wa.me/${extra}?text=${encodeURIComponent(msg)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+    }
+    toast.success(`Mensagem aberta para ${alvos.length + (extra ? 1 : 0)} contato(s).`);
+    setAvisoBase(null);
+  };
+
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
