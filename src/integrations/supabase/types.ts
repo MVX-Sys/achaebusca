@@ -403,6 +403,7 @@ export type Database = {
           hero_title: string | null
           hero_type: string
           id: string
+          restock_whatsapp: string | null
           updated_at: string | null
         }
         Insert: {
@@ -411,6 +412,7 @@ export type Database = {
           hero_title?: string | null
           hero_type?: string
           id?: string
+          restock_whatsapp?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -419,6 +421,7 @@ export type Database = {
           hero_title?: string | null
           hero_type?: string
           id?: string
+          restock_whatsapp?: string | null
           updated_at?: string | null
         }
         Relationships: []
