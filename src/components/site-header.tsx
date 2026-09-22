@@ -24,6 +24,7 @@ export function SiteHeader() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const currentSearch = useRouterState({ select: (r) => r.location.search }) as {
     cat?: string;
+    promo?: boolean;
   };
 
   const doSearch = (e: React.FormEvent) => {
@@ -139,38 +140,51 @@ export function SiteHeader() {
 
       {cats.length > 0 && (
         <nav className="border-t border-white/10 bg-primary">
-          <div
-            className="mx-auto flex max-w-7xl gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth px-3 py-3.5 text-sm sm:gap-8 sm:px-6 sm:py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
-          >
-            <Link
-              to="/produtos"
-              search={{} as never}
-              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-5 sm:text-xs sm:tracking-[0.18em] ${
-                currentPath === "/produtos" && !currentSearch?.cat
-                  ? "bg-white text-primary"
-                  : "text-white/85 hover:bg-white/15 hover:text-white"
-              }`}
+          <div className="mx-auto flex max-w-7xl justify-center px-3 sm:px-6">
+            <div
+              className="flex w-max max-w-full gap-2 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth py-3.5 text-sm sm:gap-8 sm:py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
             >
-              Todos os produtos
-            </Link>
-            {cats.map((c) => {
-              const active = currentSearch?.cat === c.slug;
-              return (
-                <Link
-                  key={c.id}
-                  to="/produtos"
-                  search={{ cat: c.slug } as never}
-                  className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-5 sm:text-xs sm:tracking-[0.18em] ${
-                    active
-                      ? "bg-white text-primary"
-                      : "text-white/85 hover:bg-white/15 hover:text-white"
-                  }`}
-                >
-                  {c.nome}
-                </Link>
-              );
-            })}
+              <Link
+                to="/produtos"
+                search={{} as never}
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-5 sm:text-xs sm:tracking-[0.18em] ${
+                  currentPath === "/produtos" && !currentSearch?.cat && !currentSearch?.promo
+                    ? "bg-white text-primary"
+                    : "text-white/85 hover:bg-white/15 hover:text-white"
+                }`}
+              >
+                Todos os produtos
+              </Link>
+              {cats.map((c) => {
+                const active = currentSearch?.cat === c.slug;
+                return (
+                  <Link
+                    key={c.id}
+                    to="/produtos"
+                    search={{ cat: c.slug } as never}
+                    className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-5 sm:text-xs sm:tracking-[0.18em] ${
+                      active
+                        ? "bg-white text-primary"
+                        : "text-white/85 hover:bg-white/15 hover:text-white"
+                    }`}
+                  >
+                    {c.nome}
+                  </Link>
+                );
+              })}
+              <Link
+                to="/produtos"
+                search={{ promo: true } as never}
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors sm:px-5 sm:text-xs sm:tracking-[0.18em] ${
+                  currentSearch?.promo
+                    ? "bg-white text-primary"
+                    : "text-white/85 hover:bg-white/15 hover:text-white"
+                }`}
+              >
+                Promoções
+              </Link>
+            </div>
           </div>
         </nav>
       )}
