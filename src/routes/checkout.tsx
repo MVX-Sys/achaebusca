@@ -663,14 +663,14 @@ function CheckoutItemRow({ item, itemsWithDiscount, appliedCoupon, items }: { it
   }, [item.foto]);
 
   return (
-    <div 
-      className={`flex gap-3 rounded-xl border p-3 transition-colors ${
-        isDiscounted 
-          ? 'border-primary/50 bg-primary/5 shadow-sm ring-1 ring-primary/10' 
-          : 'border-border bg-muted/30 hover:bg-muted/50'
+    <div
+      className={`flex gap-3 rounded-xl border p-2.5 transition-colors ${
+        isDiscounted
+          ? 'border-primary/50 bg-primary/5 shadow-sm ring-1 ring-primary/10'
+          : 'border-border/70 bg-card hover:bg-muted/30'
       }`}
     >
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-white flex items-center justify-center p-0.5">
+      <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-border bg-card flex items-center justify-center p-0.5">
         {img ? (
           <img
             src={img}
@@ -702,7 +702,9 @@ function CheckoutItemRow({ item, itemsWithDiscount, appliedCoupon, items }: { it
           </p>
         )}
         <div className="mt-1.5 flex items-center justify-between">
-          <span className="text-[10px] font-medium text-muted-foreground">{item.quantidade}x</span>
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            Qtd: {item.quantidade}
+          </span>
           <div className="flex flex-col items-end">
             <div className="flex flex-col items-end gap-0.5">
               {isDiscounted && (
