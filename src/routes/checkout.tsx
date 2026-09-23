@@ -272,98 +272,163 @@ function CheckoutPage() {
     }
   };
 
+  const baixarPDF = () => {
+    if (items.length === 0) return;
+    downloadOrderPDF({
+      items,
+      total: valorFinal,
+      formaEnvio,
+      formaEntrega: formaEnvio === "ENTREGA" ? "TRANSPORTADORA A COMBINAR" : undefined,
+      formaPagamento,
+      endereco: formaEnvio === "ENTREGA" ? {} : undefined,
+      observacoes,
+      cliente: {
+        nome: (session?.user?.user_metadata?.nome as string) || session?.user?.email?.split("@")[0] || "",
+        email: session?.user?.email || "",
+        whatsapp,
+      },
+      cupom: appliedCoupon ? { codigo: appliedCoupon.codigo, desconto: discountAmount } : undefined,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-4 py-8 md:py-12">
+      <main className="mx-auto max-w-5xl px-4 pb-44 pt-6 lg:pb-12 lg:pt-10">
         <Link
           to="/"
-          className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ChevronLeft className="h-4 w-4" /> Continuar comprando
+          <ChevronLeft className="h-3.5 w-3.5" /> Continuar comprando
         </Link>
 
-        <h1 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-          Finalizar pedido
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Preencha os campos e finalize o pedido pelo WhatsApp.
-        </p>
-
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/10 p-4 text-sm">
-          <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+        <div className="mt-3 flex items-end justify-between gap-4">
           <div>
-            <p className="font-semibold text-foreground">
-              Atenção: este pedido ainda não é uma compra confirmada.
+            <h1 className="font-display text-2xl font-bold tracking-tight lg:text-3xl">
+              Finalizar pedido
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground lg:text-sm">
+              Preencha os dados e finalize pelo WhatsApp.
             </p>
-            <p className="mt-1 text-muted-foreground">
-              Ao clicar em <span className="font-semibold text-foreground">Finalizar</span>, você será direcionado ao nosso WhatsApp para conversar com um atendente. Todos os detalhes — valores, formas de pagamento, frete e prazo de entrega — serão confirmados por lá antes de qualquer cobrança.
+          </div>
+          <span className="hidden shrink-0 rounded-md bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-primary lg:block">
+            Atacado
+          </span>
+        </div>
+
+        <div className="mt-5 space-y-2.5">
+          <div className="flex items-start gap-2.5 rounded-xl border border-primary/25 bg-primary/5 px-3.5 py-3">
+            <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground">Este pedido ainda não é uma compra confirmada.</span>{" "}
+              Ao finalizar, você fala com um atendente no WhatsApp — valores, frete e pagamento são confirmados por lá antes de qualquer cobrança.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-3.5 shadow-sm">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+              <span className="text-muted-foreground">Pedido mínimo</span>
+              <span className={minAtingido ? "text-success" : "text-primary"}>
+                {brl(VALOR_MINIMO_COMPRA)}
+              </span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border">
+              <div
+                className={`h-full rounded-full transition-all ${minAtingido ? "bg-success" : "bg-primary"}`}
+                style={{ width: `${VALOR_MINIMO_COMPRA > 0 ? Math.min(100, (total / VALOR_MINIMO_COMPRA) * 100) : 100}%` }}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {minAtingido ? (
+                <>Pedido mínimo atingido — pode finalizar.</>
+              ) : (
+                <>Faltam <span className="font-bold text-foreground">{brl(VALOR_MINIMO_COMPRA - total)}</span> para atingir o mínimo.</>
+              )}
             </p>
           </div>
         </div>
 
-        <section className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
-          <div className="lg:col-span-3 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-7">
-            <h2 className="mb-6 font-display text-lg font-semibold">Itens do pedido</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-5">
+          {/* Itens — compactos no mobile */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[11px] font-bold uppercase tracking-widest">
+                Itens do pedido ({items.length})
+              </h2>
+              <Link
+                to="/produtos"
+                className="text-[10px] font-bold uppercase tracking-tight text-primary underline underline-offset-2"
+              >
+                Editar
+              </Link>
+            </div>
+            <div className="mt-3 max-h-[26rem] space-y-2 overflow-y-auto pr-1">
               {items.map((item) => (
                 <CheckoutItemRow key={item.key} item={item} itemsWithDiscount={itemsWithDiscount} appliedCoupon={appliedCoupon} items={items} />
               ))}
               {items.length === 0 && (
-                <div className="col-span-full py-8 text-center text-sm text-muted-foreground">
+                <div className="py-8 text-center text-sm text-muted-foreground">
                   Seu carrinho está vazio.
                 </div>
               )}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-7 h-fit">
-            <h2 className="mb-6 font-display text-lg font-semibold">Resumo do Pedido</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Valor mínimo:">
-                <ReadonlyInput value={brl(VALOR_MINIMO_COMPRA)} />
-              </Field>
-              <Field label="Subtotal:">
-                <ReadonlyInput value={brl(total)} />
-              </Field>
-            </div>
+          {/* Resumo */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm lg:col-span-3 lg:p-6">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest">Resumo do pedido</h2>
 
-            <Field label="Seu WhatsApp:" required className="mt-4">
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="31 99999-9999"
-                  className="input pl-11"
-                />
-              </div>
-            </Field>
-
-            <Field label="Forma de Envio:" required className="mt-4">
-              <select
-                value={formaEnvio}
-                onChange={(e) => setFormaEnvio(e.target.value as FormaEnvio)}
-                className="input"
-              >
-                <option value="ENTREGA">ENTREGA (Transportadora a combinar)</option>
-                <option value="RETIRADA">RETIRADA NO LOCAL</option>
-              </select>
-            </Field>
-
-            <Field label="Forma de Pagamento:" className="mt-4">
-              <div className="flex items-center gap-2">
-                <div className="rounded-full border border-primary bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow-sm">
-                  PIX
+            <div className="mt-4 space-y-4">
+              <Field label="Seu WhatsApp:" required>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="tel"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="31 99999-9999"
+                    className="input pl-11"
+                  />
                 </div>
-                <span className="text-[10px] text-muted-foreground italic">(Única forma aceita)</span>
-              </div>
-            </Field>
+              </Field>
 
-            <Field label="Cupom de Desconto:" className="mt-4">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Forma de Envio:" required>
+                  <div className="flex rounded-xl border border-border bg-background p-1">
+                    {(["ENTREGA", "RETIRADA"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setFormaEnvio(f)}
+                        className={`flex-1 rounded-lg py-2 text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                          formaEnvio === f
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {f === "ENTREGA" ? "Entrega" : "Retirada"}
+                      </button>
+                    ))}
+                  </div>
+                  {formaEnvio === "ENTREGA" && (
+                    <p className="mt-1.5 text-[9px] leading-snug text-muted-foreground">
+                      Transportadora a combinar
+                    </p>
+                  )}
+                </Field>
+
+                <Field label="Forma de Pagamento:">
+                  <div className="flex h-[42px] items-center justify-center gap-2 rounded-xl border border-success/25 bg-success/10">
+                    <span className="text-xs font-black uppercase tracking-wider text-success">PIX</span>
+                    <span className="rounded bg-success px-1.5 py-0.5 text-[7px] font-black uppercase leading-none text-background">
+                      Única forma
+                    </span>
+                  </div>
+                </Field>
+              </div>
+
+              <Field label="Cupom de Desconto:">
+                <div className="relative">
                   <Ticket className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
@@ -371,102 +436,107 @@ function CheckoutPage() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     disabled={!!appliedCoupon || isValidatingCoupon}
-                    className="input pl-10 uppercase font-mono text-xs"
+                    className="input pl-10 pr-24 font-mono text-xs uppercase"
                   />
-                </div>
-                {appliedCoupon ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAppliedCoupon(null);
-                      setCouponCode("");
-                    }}
-                    className="rounded-lg bg-destructive/10 px-3 text-[10px] font-bold text-destructive transition-colors hover:bg-destructive/20"
-                  >
-                    Remover
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={!couponCode || isValidatingCoupon}
-                    onClick={async () => {
-                      setIsValidatingCoupon(true);
-                      try {
-                        const res = await fnValidateCoupon({ data: { codigo: couponCode } });
-                        if (res.valid && res.cupom) {
-                          if (res.cupom.preco_minimo_pedido && total < res.cupom.preco_minimo_pedido) {
-                            toast.error(`Pedido mínimo: ${brl(res.cupom.preco_minimo_pedido)}`);
-                            return;
-                          }
-                          const totalItens = items.reduce((s, i) => s + i.quantidade, 0);
-                          if (totalItens < res.cupom.quantidade_minima_itens) {
-                            toast.error(`Mínimo de ${res.cupom.quantidade_minima_itens} itens.`);
-                            return;
-                          }
-
-                          // Verificação inicial de produtos/categorias permitidos
-                          const allowedIds = (res.cupom.produtos_ids || []).map((id: string) => id.toLowerCase());
-                          const allowedCats = (res.cupom.categorias_ids || []).map((id: string) => id.toLowerCase());
-                          if (allowedIds.length > 0 || allowedCats.length > 0) {
-                            const hasAllowed = items.some(item => {
-                              const okP = allowedIds.length === 0 || allowedIds.includes(item.produtoId.toLowerCase());
-                              const okC = allowedCats.length === 0 || allowedCats.includes((item.categoriaId || "").toLowerCase());
-                              return okP && okC;
-                            });
-                            if (!hasAllowed) {
-                              toast.error("Cupom não aplicável a estes produtos.");
+                  {appliedCoupon ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setCouponCode("");
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-destructive/10 px-3 py-1.5 text-[10px] font-bold text-destructive transition-colors hover:bg-destructive/20"
+                    >
+                      Remover
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!couponCode || isValidatingCoupon}
+                      onClick={async () => {
+                        setIsValidatingCoupon(true);
+                        try {
+                          const res = await fnValidateCoupon({ data: { codigo: couponCode } });
+                          if (res.valid && res.cupom) {
+                            if (res.cupom.preco_minimo_pedido && total < res.cupom.preco_minimo_pedido) {
+                              toast.error(`Pedido mínimo: ${brl(res.cupom.preco_minimo_pedido)}`);
                               return;
                             }
+                            const totalItens = items.reduce((s, i) => s + i.quantidade, 0);
+                            if (totalItens < res.cupom.quantidade_minima_itens) {
+                              toast.error(`Mínimo de ${res.cupom.quantidade_minima_itens} itens.`);
+                              return;
+                            }
+
+                            const allowedIds = (res.cupom.produtos_ids || []).map((id: string) => id.toLowerCase());
+                            const allowedCats = (res.cupom.categorias_ids || []).map((id: string) => id.toLowerCase());
+                            if (allowedIds.length > 0 || allowedCats.length > 0) {
+                              const hasAllowed = items.some(item => {
+                                const okP = allowedIds.length === 0 || allowedIds.includes(item.produtoId.toLowerCase());
+                                const okC = allowedCats.length === 0 || allowedCats.includes((item.categoriaId || "").toLowerCase());
+                                return okP && okC;
+                              });
+                              if (!hasAllowed) {
+                                toast.error("Cupom não aplicável a estes produtos.");
+                                return;
+                              }
+                            }
+
+                            setAppliedCoupon(res.cupom);
+                            toast.success("Cupom aplicado!");
+                          } else {
+                            toast.error(res.message || "Inválido.");
                           }
-
-
-                          setAppliedCoupon(res.cupom);
-                          toast.success("Cupom aplicado!");
-                        } else {
-                          toast.error(res.message || "Inválido.");
+                        } catch (err) {
+                          toast.error("Erro ao validar.");
+                        } finally {
+                          setIsValidatingCoupon(false);
                         }
-                      } catch (err) {
-                        toast.error("Erro ao validar.");
-                      } finally {
-                        setIsValidatingCoupon(false);
-                      }
-                    }}
-                    className="rounded-lg bg-primary px-4 text-[10px] font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:opacity-40"
-                  >
-                    {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "APLICAR"}
-                  </button>
-                )}
-              </div>
-            </Field>
-
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <Field label="Desconto Cupom:">
-                <ReadonlyInput value={discountAmount > 0 ? `-${brl(discountAmount)}` : "R$ 0,00"} strong={discountAmount > 0} />
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-primary px-3.5 py-1.5 text-[10px] font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:opacity-40"
+                    >
+                      {isValidatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "APLICAR"}
+                    </button>
+                  )}
+                </div>
               </Field>
-              <Field label="Desconto Base:">
-                <ReadonlyInput value={brl(items.reduce((acc, i) => acc + (i.preco - itemPrecoEfetivo(i)) * i.quantidade, 0))} />
+
+              <Field label="Observações:">
+                <textarea
+                  value={observacoes}
+                  onChange={(e) => setObservacoes(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Ex: Entrega no período da tarde"
+                  className="input min-h-[72px] resize-none text-xs"
+                />
               </Field>
             </div>
 
-            <Field label="Observações:" className="mt-4">
-              <textarea
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                maxLength={500}
-                rows={3}
-                placeholder="Ex: Entrega no período da tarde"
-                className="input min-h-[80px] text-xs resize-none"
-              />
-            </Field>
-
-            <div className="mt-6 border-t border-border pt-6">
-              <div className="flex items-center justify-between rounded-xl bg-primary/5 p-4 border border-primary/20">
+            <div className="mt-5 space-y-2 border-t border-border pt-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">{brl(total)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Desconto cupom</span>
+                <span className={discountAmount > 0 ? "font-bold text-success" : "text-muted-foreground"}>
+                  {discountAmount > 0 ? `- ${brl(discountAmount)}` : "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Desconto base</span>
+                <span className="text-muted-foreground">
+                  {brl(items.reduce((acc, i) => acc + (i.preco - itemPrecoEfetivo(i)) * i.quantidade, 0))}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t border-border pt-3">
                 <span className="font-display text-sm font-semibold">Valor Total</span>
-                <span className="font-display text-xl font-bold text-primary">{brl(valorFinal)}</span>
+                <span className="font-display text-xl font-black text-primary">{brl(valorFinal)}</span>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-2">
+            <div className="mt-6 hidden flex-col gap-2 lg:flex">
               <button
                 type="button"
                 onClick={finalizar}
@@ -478,25 +548,7 @@ function CheckoutPage() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (items.length === 0) return;
-                  downloadOrderPDF({
-                    items,
-                    total: valorFinal,
-                    formaEnvio,
-                    formaEntrega: formaEnvio === "ENTREGA" ? "TRANSPORTADORA A COMBINAR" : undefined,
-                    formaPagamento,
-                    endereco: formaEnvio === "ENTREGA" ? {} : undefined,
-                    observacoes,
-                    cliente: {
-                      nome: (session?.user?.user_metadata?.nome as string) || session?.user?.email?.split("@")[0] || "",
-                      email: session?.user?.email || "",
-                      whatsapp,
-                    },
-                    cupom: appliedCoupon ? { codigo: appliedCoupon.codigo, desconto: discountAmount } : undefined
-                  });
-
-                }}
+                onClick={baixarPDF}
                 disabled={items.length === 0}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background py-3 text-xs font-semibold transition-colors hover:bg-accent disabled:opacity-40"
               >
@@ -507,6 +559,40 @@ function CheckoutPage() {
           </div>
         </section>
       </main>
+
+      {/* Barra fixa de finalização — mobile */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 pt-3 backdrop-blur lg:hidden"
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+      >
+        <div className="mx-auto max-w-5xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total do pedido</span>
+            <span className="font-display text-xl font-black text-primary">{brl(valorFinal)}</span>
+          </div>
+          <div className="mt-2.5 flex gap-2">
+            <button
+              type="button"
+              onClick={finalizar}
+              disabled={items.length === 0 || !minAtingido}
+              className="btn-shine inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Finalizar no WhatsApp
+            </button>
+            <button
+              type="button"
+              aria-label="Baixar Resumo em PDF"
+              onClick={baixarPDF}
+              disabled={items.length === 0}
+              className="inline-flex w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <SiteFooter />
 
       {showAtendentes && (
@@ -564,16 +650,6 @@ function Field({ label, required, className = "", children }: { label: string; r
   );
 }
 
-function ReadonlyInput({ value, strong }: { value: string; strong?: boolean }) {
-  return (
-    <input
-      readOnly
-      value={value}
-      className={`input cursor-default bg-muted/50 text-xs py-2 h-9 ${strong ? "font-bold text-primary" : ""}`}
-    />
-  );
-}
-
 function CheckoutItemRow({ item, itemsWithDiscount, appliedCoupon, items }: { item: any, itemsWithDiscount: Set<string>, appliedCoupon: any, items: any[] }) {
   const [img, setImg] = useState<string>("");
   const isDiscounted = itemsWithDiscount.has(item.key);
@@ -587,14 +663,14 @@ function CheckoutItemRow({ item, itemsWithDiscount, appliedCoupon, items }: { it
   }, [item.foto]);
 
   return (
-    <div 
-      className={`flex gap-3 rounded-xl border p-3 transition-colors ${
-        isDiscounted 
-          ? 'border-primary/50 bg-primary/5 shadow-sm ring-1 ring-primary/10' 
-          : 'border-border bg-muted/30 hover:bg-muted/50'
+    <div
+      className={`flex gap-3 rounded-xl border p-2.5 transition-colors ${
+        isDiscounted
+          ? 'border-primary/50 bg-primary/5 shadow-sm ring-1 ring-primary/10'
+          : 'border-border/70 bg-card hover:bg-muted/30'
       }`}
     >
-      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-white flex items-center justify-center p-0.5">
+      <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-border bg-card flex items-center justify-center p-0.5">
         {img ? (
           <img
             src={img}
@@ -626,7 +702,9 @@ function CheckoutItemRow({ item, itemsWithDiscount, appliedCoupon, items }: { it
           </p>
         )}
         <div className="mt-1.5 flex items-center justify-between">
-          <span className="text-[10px] font-medium text-muted-foreground">{item.quantidade}x</span>
+          <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+            Qtd: {item.quantidade}
+          </span>
           <div className="flex flex-col items-end">
             <div className="flex flex-col items-end gap-0.5">
               {isDiscounted && (
