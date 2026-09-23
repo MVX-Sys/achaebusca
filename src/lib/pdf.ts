@@ -293,6 +293,7 @@ export type OrderPDFPayload = {
     referencia?: string;
   };
   observacoes?: string;
+  cliente?: { nome?: string; email?: string; whatsapp?: string };
   cupom?: {
     codigo: string;
     desconto: number;
@@ -313,6 +314,24 @@ export async function downloadOrderPDF(order: OrderPDFPayload, download = true):
   doc.text(new Date().toLocaleString("pt-BR"), 196, y, { align: "right" });
   doc.setTextColor(...DARK);
   y += 8;
+
+  // Dados do cliente
+  if (order.cliente) {
+    const c = order.cliente;
+    const wpp = (c.whatsapp || "").replace(/\D/g, "");
+    const wppFmt = wpp.length >= 10 ? `(${wpp.slice(-11, -9) || wpp.slice(0, 2)}) ${wpp.slice(-9, -4)}-${wpp.slice(-4)}` : wpp;
+    doc.setFillColor(249, 250, 251);
+    doc.rect(14, y - 4, 182, 22, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Cliente", 18, y + 1);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Nome: ${c.nome || "—"}`, 18, y + 7);
+    doc.text(`WhatsApp: ${wppFmt || "—"}`, 18, y + 13);
+    doc.text(`E-mail: ${c.email || "—"}`, 105, y + 7);
+    y += 26;
+  }
 
   // Items table
   doc.setFillColor(249, 250, 251);
@@ -361,7 +380,7 @@ export async function downloadOrderPDF(order: OrderPDFPayload, download = true):
     }
 
     const perso = formatPersonalizacoes(it);
-    const desc = `${it.nome}\n${it.cor} · ${it.tamanho}${perso ? `\nPersonalização: ${perso}` : ""}`;
+    const desc = `${it.codigo ? `[${it.codigo}] ` : ""}${it.nome}\n${it.cor} · ${it.tamanho}${perso ? `\nPersonalização: ${perso}` : ""}`;
     const lines = doc.splitTextToSize(desc, 80);
     doc.text(String(it.quantidade), 18, y + 5);
     doc.text(lines, 75, y + 5);

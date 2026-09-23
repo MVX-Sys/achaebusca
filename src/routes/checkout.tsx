@@ -243,6 +243,11 @@ function CheckoutPage() {
             formaPagamento,
             endereco: formaEnvio === "ENTREGA" ? {} : undefined,
             observacoes,
+            cliente: {
+              nome: (session?.user?.user_metadata?.nome as string) || session?.user?.email?.split("@")[0] || "",
+              email: session?.user?.email || "",
+              whatsapp,
+            },
             cupom: appliedCoupon
               ? { codigo: appliedCoupon.codigo, desconto: discountAmount }
               : undefined,
@@ -483,6 +488,11 @@ function CheckoutPage() {
                     formaPagamento,
                     endereco: formaEnvio === "ENTREGA" ? {} : undefined,
                     observacoes,
+                    cliente: {
+                      nome: (session?.user?.user_metadata?.nome as string) || session?.user?.email?.split("@")[0] || "",
+                      email: session?.user?.email || "",
+                      whatsapp,
+                    },
                     cupom: appliedCoupon ? { codigo: appliedCoupon.codigo, desconto: discountAmount } : undefined
                   });
 
