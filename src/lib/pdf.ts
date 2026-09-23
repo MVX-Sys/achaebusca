@@ -319,7 +319,8 @@ export async function downloadOrderPDF(order: OrderPDFPayload, download = true):
   if (order.cliente) {
     const c = order.cliente;
     const wpp = (c.whatsapp || "").replace(/\D/g, "");
-    const wppFmt = wpp.length >= 10 ? `(${wpp.slice(-11, -9) || wpp.slice(0, 2)}) ${wpp.slice(-9, -4)}-${wpp.slice(-4)}` : wpp;
+    const local = wpp.length > 11 ? wpp.slice(-11) : wpp;
+    const wppFmt = local.length >= 10 ? `(${local.slice(0, 2)}) ${local.slice(2, -4)}-${local.slice(-4)}` : wpp;
     doc.setFillColor(249, 250, 251);
     doc.rect(14, y - 4, 182, 22, "F");
     doc.setFont("helvetica", "bold");
