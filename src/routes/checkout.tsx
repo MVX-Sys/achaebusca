@@ -272,6 +272,25 @@ function CheckoutPage() {
     }
   };
 
+  const baixarPDF = () => {
+    if (items.length === 0) return;
+    downloadOrderPDF({
+      items,
+      total: valorFinal,
+      formaEnvio,
+      formaEntrega: formaEnvio === "ENTREGA" ? "TRANSPORTADORA A COMBINAR" : undefined,
+      formaPagamento,
+      endereco: formaEnvio === "ENTREGA" ? {} : undefined,
+      observacoes,
+      cliente: {
+        nome: (session?.user?.user_metadata?.nome as string) || session?.user?.email?.split("@")[0] || "",
+        email: session?.user?.email || "",
+        whatsapp,
+      },
+      cupom: appliedCoupon ? { codigo: appliedCoupon.codigo, desconto: discountAmount } : undefined,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -628,16 +647,6 @@ function Field({ label, required, className = "", children }: { label: string; r
       </span>
       {children}
     </label>
-  );
-}
-
-function ReadonlyInput({ value, strong }: { value: string; strong?: boolean }) {
-  return (
-    <input
-      readOnly
-      value={value}
-      className={`input cursor-default bg-muted/50 text-xs py-2 h-9 ${strong ? "font-bold text-primary" : ""}`}
-    />
   );
 }
 
