@@ -1113,24 +1113,6 @@ function AdminProductsList() {
                               >
                                 <GripVertical className="h-4 w-4" />
                               </span>
-                              <button
-                                onClick={() => moverProduto(p.id, -1)}
-                                disabled={reordering || idx === 0}
-                                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
-                                title="Mover para cima"
-                                aria-label="Mover para cima"
-                              >
-                                <ChevronUp className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => moverProduto(p.id, 1)}
-                                disabled={reordering || idx === filtered.length - 1}
-                                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
-                                title="Mover para baixo"
-                                aria-label="Mover para baixo"
-                              >
-                                <ChevronDown className="h-4 w-4" />
-                              </button>
                             </div>
                           )}
                           <button
