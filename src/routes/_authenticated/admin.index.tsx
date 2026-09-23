@@ -28,7 +28,9 @@ type SortKey =
   | "menor-preco"
   | "maior-preco"
   | "menor-estoque"
-  | "maior-estoque";
+  | "maior-estoque"
+  | "codigo-asc"
+  | "codigo-desc";
 
 function AdminProductsList() {
   const qc = useQueryClient();
@@ -221,6 +223,8 @@ function AdminProductsList() {
     const sorted = [...list];
     sorted.sort((a, b) => {
       switch (sort) {
+        case "codigo-asc": return String((a as any).hash_id ?? "").localeCompare(String((b as any).hash_id ?? ""), "pt-BR", { numeric: true });
+        case "codigo-desc": return String((b as any).hash_id ?? "").localeCompare(String((a as any).hash_id ?? ""), "pt-BR", { numeric: true });
         case "nome-asc": return a.nome.localeCompare(b.nome);
         case "nome-desc": return b.nome.localeCompare(a.nome);
         case "menor-preco": return a.preco - b.preco;
@@ -517,6 +521,8 @@ function AdminProductsList() {
                 <option value="ordem">Ordem de exibição (manual)</option>
                 <option value="recentes">Mais recentes</option>
                 <option value="antigos">Mais antigos</option>
+                <option value="codigo-asc">Código (A–Z)</option>
+                <option value="codigo-desc">Código (Z–A)</option>
                 <option value="nome-asc">Nome (A–Z)</option>
                 <option value="nome-desc">Nome (Z–A)</option>
                 <option value="menor-preco">Menor preço</option>
