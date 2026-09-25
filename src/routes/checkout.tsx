@@ -593,7 +593,9 @@ function CheckoutPage() {
         </div>
       </div>
 
-      <SiteFooter />
+      <div className="pb-24 lg:pb-0">
+        <SiteFooter />
+      </div>
 
       {showAtendentes && (
         <div
