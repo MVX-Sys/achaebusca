@@ -132,3 +132,13 @@ export const updatePedidoStatus = createServerFn({ method: "POST" })
     if (error) throw error;
     return { success: true };
   });
+
+export const deletePedido = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { error } = await (supabase as any).rpc("delete_pedido", { _pedido_id: data.id });
+    if (error) throw error;
+    return { success: true };
+  });
