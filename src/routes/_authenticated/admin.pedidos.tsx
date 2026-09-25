@@ -10,9 +10,10 @@ import {
   Clock, 
   CheckCircle2, 
   Users,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
-import { listPedidos, updatePedidoStatus } from "@/lib/pedidos.functions";
+import { listPedidos, updatePedidoStatus, deletePedido } from "@/lib/pedidos.functions";
 import { listAtendentes } from "@/lib/atendentes.functions";
 import { listAdminUsers } from "@/lib/admin-users.functions";
 import { brl } from "@/lib/format";
@@ -37,6 +38,7 @@ function PedidosAdminPage() {
   const qc = useQueryClient();
   const fetchPedidos = useServerFn(listPedidos);
   const updateStatus = useServerFn(updatePedidoStatus);
+  const removePedido = useServerFn(deletePedido);
   const fetchAtendentes = useServerFn(listAtendentes);
   const fetchUsers = useServerFn(listAdminUsers);
 
@@ -78,10 +80,11 @@ function PedidosAdminPage() {
   }, [pedidos, q]);
 
   const stats = useMemo(() => {
+    const validos = pedidos.filter(p => p.status !== "cancelado");
     return {
-      total: pedidos.length,
-      pecas: pedidos.reduce((acc, p) => acc + (p.itens?.reduce((s, i) => s + i.quantidade, 0) || 0), 0),
-      valor: pedidos.reduce((acc, p) => acc + Number(p.total), 0)
+      total: validos.length,
+      pecas: validos.reduce((acc, p) => acc + (p.itens?.reduce((s, i) => s + i.quantidade, 0) || 0), 0),
+      valor: validos.reduce((acc, p) => acc + Number(p.total), 0)
     };
   }, [pedidos]);
 
