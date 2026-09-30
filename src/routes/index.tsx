@@ -241,9 +241,9 @@ interface ProductSectionProps {
 
 function ProductSection({ title, highlightIndex, products, subtitle, isPromo, emptyMessage }: ProductSectionProps) {
   return (
-    <section className="py-24 md:py-32">
+    <section className="py-12 md:py-32">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="mb-12 text-center md:mb-16">
+        <div className="mb-8 text-center md:mb-16">
           <h2 className="font-display text-4xl font-black uppercase tracking-tighter md:text-5xl lg:text-6xl">
             {title.map((word, i) => (
               <span key={i} className={i === highlightIndex ? "text-primary" : ""}>
@@ -267,7 +267,7 @@ function ProductSection({ title, highlightIndex, products, subtitle, isPromo, em
 
             </div>
 
-            <div className="mt-16 text-center">
+            <div className="mt-10 text-center md:mt-16">
               <Link
                 to="/produtos"
                 className="inline-flex items-center gap-2 font-display text-sm font-black uppercase tracking-widest text-foreground transition-colors hover:text-primary"
@@ -348,7 +348,7 @@ function CategoriesSection({ categorias, produtos }: { categorias: Categoria[]; 
   };
 
   return (
-    <section className="py-24 md:py-32 overflow-hidden">
+    <section className="py-12 md:py-32 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-12 flex items-end justify-between md:mb-16">
           <h2 className="font-display text-4xl font-black uppercase tracking-tighter md:text-5xl lg:text-6xl">

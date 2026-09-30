@@ -6,7 +6,7 @@ import { brl } from "./format";
 import { BRAND } from "./config";
 import type { ProductListItem } from "./products";
 import { type CartItem, itemPrecoEfetivo, formatPersonalizacoes } from "./cart";
-import { getGruposPersonalizacao } from "./personalizacao";
+import { parsePersonalizacoes, agruparPersonalizacoes } from "./personalizacao";
 
 const fetchImageAsBase64 = async (url: string): Promise<string> => {
   if (!url) return "";
@@ -230,7 +230,7 @@ export async function downloadProductPDF(p: ProductListItem, categoriaNome?: str
     y += 6;
   }
 
-  const grupos = getGruposPersonalizacao(p.nome, categoriaNome, (p as any).personalizacao_tipo ?? null);
+  const grupos = agruparPersonalizacoes(parsePersonalizacoes((p as any).personalizacoes));
   if (grupos.length) {
     if (y > 250) {
       footer(doc);

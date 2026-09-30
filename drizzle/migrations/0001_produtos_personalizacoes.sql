@@ -1,0 +1,2 @@
+ALTER TABLE public.produtos ADD COLUMN IF NOT EXISTS personalizacoes jsonb NOT NULL DEFAULT '[]'::jsonb;
+COMMENT ON COLUMN public.produtos.personalizacao_tipo IS 'DEPRECATED: replaced by personalizacoes';

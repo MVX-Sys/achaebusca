@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790637530364,
+      "tag": "0000_atendentes_horario",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790721673155,
+      "tag": "0001_produtos_personalizacoes",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790724933694,
+      "tag": "0002_backfill_personalizacoes_produtos_existentes",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790787166478,
+      "tag": "0003_estoque_historico",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790788464219,
+      "tag": "0004_ensure_personalizacoes_reload_schema",
+      "breakpoints": true
+    }
+  ]
+}

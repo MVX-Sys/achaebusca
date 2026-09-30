@@ -298,12 +298,13 @@ function PedidosAdminPage() {
                 <th className="px-4 py-3 font-semibold">Itens</th>
                 <th className="px-4 py-3 font-semibold">Total</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center">
+                  <td colSpan={7} className="py-20 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       <p className="text-muted-foreground">Carregando pedidos...</p>
@@ -312,7 +313,7 @@ function PedidosAdminPage() {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-20 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-20 text-center text-muted-foreground">
                     Nenhum pedido encontrado.
                   </td>
                 </tr>
@@ -410,6 +411,34 @@ function PedidosAdminPage() {
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={pedido.status} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {pedido.status === "cancelado" || pedido.status === "entregue" ? (
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm("Apagar este pedido definitivamente? Essa ação não pode ser desfeita.")) return;
+                              try {
+                                await removePedido({ data: { id: pedido.id } });
+                                qc.invalidateQueries({ queryKey: ["admin-pedidos"] });
+                                toast.success("Pedido apagado.");
+                              } catch (err) {
+                                console.error("Erro ao apagar pedido:", err);
+                                toast.error("Não foi possível apagar o pedido.");
+                              }
+                            }}
+                            title="Apagar pedido"
+                            className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span
+                            className="inline-flex items-center text-muted-foreground/40"
+                            title="Só é possível apagar pedidos cancelados ou entregues"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

@@ -95,7 +95,9 @@ type CartCtx = {
   count: number;
 };
 
-const Ctx = createContext<CartCtx | null>(null);
+// Mantém o mesmo contexto entre recarregamentos de código (evita tela branca após edições)
+const g = globalThis as unknown as { __cartCtx?: React.Context<CartCtx | null> };
+const Ctx = g.__cartCtx ?? (g.__cartCtx = createContext<CartCtx | null>(null));
 const STORAGE_KEY = "achaebusca_cart_v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -124,6 +126,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {}
   }, [items, hydrated]);
+
+  // Sincroniza o carrinho com o estoque real do banco (evita itens esgotados)
+  const idsKey = [...new Set(items.map((i) => i.variacaoId))].sort().join(",");
+  useEffect(() => {
+    if (!hydrated || !idsKey) return;
+    let cancel = false;
+    const sync = async () => {
+      const ids = idsKey.split(",");
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await supabase
+        .from("variacoes_produto")
+        .select("id, quantidade_estoque, produtos(ativo)")
+        .in("id", ids);
+      if (error || !data || cancel) return;
+      const estoque = new Map<string, number>(
+        data.map((v: any) => [v.id, v.produtos?.ativo === false ? 0 : v.quantidade_estoque]),
+      );
+      const removidos: string[] = [];
+      setItems((prev) => {
+        const usado = new Map<string, number>();
+        let mudou = false;
+        const next: CartItem[] = [];
+        for (const x of prev) {
+          const disp = estoque.has(x.variacaoId) ? estoque.get(x.variacaoId)! : 0;
+          const ja = usado.get(x.variacaoId) ?? 0;
+          const q = Math.max(0, Math.min(x.quantidade, disp - ja));
+          usado.set(x.variacaoId, ja + q);
+          if (q !== x.quantidade || x.estoque !== disp) mudou = true;
+          if (q < x.quantidade) removidos.push(`${x.nome} (${x.cor}, Tam ${x.tamanho})`);
+          if (q > 0) next.push({ ...x, quantidade: q, estoque: disp });
+        }
+        return mudou ? next : prev;
+      });
+      if (removidos.length) {
+        const { toast } = await import("sonner");
+        toast.warning(`Estoque atualizado: ${[...new Set(removidos)].join("; ")} foi ajustado no carrinho.`);
+      }
+    };
+    sync();
+    const onFocus = () => sync();
+    window.addEventListener("focus", onFocus);
+    const id = setInterval(sync, 60_000);
+    return () => {
+      cancel = true;
+      window.removeEventListener("focus", onFocus);
+      clearInterval(id);
+    };
+  }, [hydrated, idsKey, open]);
 
   const add: CartCtx["add"] = (item, qty = 1) => {
     const cartItem = item as CartItem;
@@ -177,8 +227,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const FALLBACK: CartCtx = {
+  items: [],
+  open: false,
+  setOpen: () => {},
+  add: () => {},
+  setQty: () => {},
+  remove: () => {},
+  clear: () => {},
+  total: 0,
+  count: 0,
+};
+
 export function useCart() {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
+  if (!ctx) {
+    console.warn("useCart usado fora do CartProvider; usando carrinho vazio.");
+    return FALLBACK;
+  }
   return ctx;
 }

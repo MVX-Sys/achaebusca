@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "459113d3-1730-4c8a-8321-349e478a5c4e",
-  "project_id": "07a0350e-8d9e-45a8-accc-22bbc9ef3783",
-  "url": "/__l5e/assets-v1/459113d3-1730-4c8a-8321-349e478a5c4e/birken_dubai.jpg",
-  "r2_key": "a/v1/07a0350e-8d9e-45a8-accc-22bbc9ef3783/459113d3-1730-4c8a-8321-349e478a5c4e/birken_dubai.jpg",
-  "original_filename": "birken_dubai.jpg",
-  "size": 1616405,
   "content_type": "image/jpeg",
-  "created_at": "2026-07-27T18:14:25Z"
+  "created_at": "2026-07-27T18:14:25Z",
+  "original_filename": "birken_dubai.jpg",
+  "project_id": "299306d4-cdbe-4bed-bb72-c118295585bb",
+  "r2_key": "a/v1/299306d4-cdbe-4bed-bb72-c118295585bb/459113d3-1730-4c8a-8321-349e478a5c4e/birken_dubai.jpg",
+  "size": 1616405,
+  "url": "/__l5e/assets-v1/459113d3-1730-4c8a-8321-349e478a5c4e/birken_dubai.jpg",
+  "version": 1
 }

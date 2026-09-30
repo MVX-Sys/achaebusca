@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { downloadAuditCSV, downloadAuditPDF, downloadTableXLSX } from "@/lib/pdf";
 import { ExportMenu } from "@/components/export-menu";
+import { StockHistory } from "@/components/stock-history";
 import {
   PieChart,
   Pie,
@@ -437,6 +438,7 @@ function AuditoriaPage() {
           </ol>
         )}
       </div>
+      <StockHistory />
     </div>
   );
 }

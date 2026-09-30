@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "ad16c0a7-37ed-4644-a162-3de8a703fca6",
-  "project_id": "07a0350e-8d9e-45a8-accc-22bbc9ef3783",
-  "url": "/__l5e/assets-v1/ad16c0a7-37ed-4644-a162-3de8a703fca6/atendente-gustavo.jpg",
-  "r2_key": "a/v1/07a0350e-8d9e-45a8-accc-22bbc9ef3783/ad16c0a7-37ed-4644-a162-3de8a703fca6/atendente-gustavo.jpg",
-  "original_filename": "atendente-gustavo.jpg",
-  "size": 73771,
   "content_type": "image/jpeg",
-  "created_at": "2026-07-29T16:54:10Z"
+  "created_at": "2026-07-29T16:54:10Z",
+  "original_filename": "atendente-gustavo.jpg",
+  "project_id": "299306d4-cdbe-4bed-bb72-c118295585bb",
+  "r2_key": "a/v1/299306d4-cdbe-4bed-bb72-c118295585bb/ad16c0a7-37ed-4644-a162-3de8a703fca6/atendente-gustavo.jpg",
+  "size": 73771,
+  "url": "/__l5e/assets-v1/ad16c0a7-37ed-4644-a162-3de8a703fca6/atendente-gustavo.jpg",
+  "version": 1
 }

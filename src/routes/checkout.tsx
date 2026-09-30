@@ -630,6 +630,9 @@ function CheckoutPage() {
                   <div className="text-center">
                     <p className="font-display text-xs font-semibold">{a.nome}</p>
                     <p className="text-[9px] text-muted-foreground uppercase">{a.cargo || "Vendedor"}</p>
+                    {(a as any).horario && (
+                      <p className="mt-1 text-[10px] font-medium text-primary">🕒 {(a as any).horario}</p>
+                    )}
                   </div>
                 </button>
               ))}

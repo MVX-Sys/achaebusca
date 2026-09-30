@@ -1,0 +1,1 @@
+ALTER TABLE public.atendentes ADD COLUMN IF NOT EXISTS horario text;

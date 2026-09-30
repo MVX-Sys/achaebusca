@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "c0bbacab-8e13-4a9a-932b-18664daa1d6f",
-  "project_id": "07a0350e-8d9e-45a8-accc-22bbc9ef3783",
-  "url": "/__l5e/assets-v1/c0bbacab-8e13-4a9a-932b-18664daa1d6f/acha-busca-logo.png",
-  "r2_key": "a/v1/07a0350e-8d9e-45a8-accc-22bbc9ef3783/c0bbacab-8e13-4a9a-932b-18664daa1d6f/acha-busca-logo.png",
-  "original_filename": "acha-busca-logo.png",
-  "size": 717571,
   "content_type": "image/png",
-  "created_at": "2026-07-22T17:51:28Z"
+  "created_at": "2026-07-22T17:51:28Z",
+  "original_filename": "acha-busca-logo.png",
+  "project_id": "299306d4-cdbe-4bed-bb72-c118295585bb",
+  "r2_key": "a/v1/299306d4-cdbe-4bed-bb72-c118295585bb/c0bbacab-8e13-4a9a-932b-18664daa1d6f/acha-busca-logo.png",
+  "size": 717571,
+  "url": "/__l5e/assets-v1/c0bbacab-8e13-4a9a-932b-18664daa1d6f/acha-busca-logo.png",
+  "version": 1
 }

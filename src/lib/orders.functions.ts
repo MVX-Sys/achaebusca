@@ -1,23 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import {
-  OPCOES_CASE,
-  OPCOES_LENCO,
-  OPCOES_OCULOS,
-  OPCOES_SANDALIA_PALA,
-  OPCOES_SANDALIA_REGULAGEM,
-} from "@/lib/personalizacao";
-
-const PRECO_PERSONALIZACAO = new Map<string, number>(
-  [
-    ...OPCOES_OCULOS,
-    ...OPCOES_CASE,
-    ...OPCOES_LENCO,
-    ...OPCOES_SANDALIA_PALA,
-    ...OPCOES_SANDALIA_REGULAGEM,
-  ].map((o) => [o.id, o.preco]),
-);
+import { parsePersonalizacoes } from "@/lib/personalizacao";
 
 function precoPromocionalValido(
   preco: number,
@@ -73,7 +57,7 @@ export const createOrder = createServerFn({ method: "POST" })
     const { data: variacoes, error: varErr } = await supabase
       .from("variacoes_produto")
       .select(
-        "id, produto_id, nome_cor, tamanho, quantidade_estoque, produtos(id, nome, ativo, preco, preco_promocional, promocao_ate, categoria_id)",
+        "id, produto_id, nome_cor, tamanho, quantidade_estoque, produtos(id, nome, ativo, preco, preco_promocional, promocao_ate, categoria_id, personalizacoes)",
       )
       .in("id", variacaoIds);
 
@@ -98,8 +82,9 @@ export const createOrder = createServerFn({ method: "POST" })
         p.preco_promocional == null ? null : Number(p.preco_promocional),
         p.promocao_ate ?? null,
       );
+      const precos = new Map(parsePersonalizacoes(p.personalizacoes).map((o) => [o.id, o.preco]));
       const extras = (item.personalizacoes ?? []).reduce(
-        (s, id) => s + (PRECO_PERSONALIZACAO.get(id) ?? 0),
+        (s, id) => s + (precos.get(id) ?? 0),
         0,
       );
       const preco_unitario = round2(base + extras);

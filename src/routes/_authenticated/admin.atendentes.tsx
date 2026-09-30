@@ -113,6 +113,7 @@ type FormState = {
   nome: string;
   whatsapp: string;
   cargo: string;
+  horario: string;
   foto_path: string | null;
   ativo: boolean;
 };
@@ -121,6 +122,7 @@ const EMPTY_FORM: FormState = {
   nome: "",
   whatsapp: "",
   cargo: "Vendedor",
+  horario: "",
   foto_path: null,
   ativo: true,
 };
@@ -156,16 +158,17 @@ function AtendentesPage() {
       const nome = data.nome.trim();
       const whatsapp = data.whatsapp.replace(/\D/g, "");
       const cargo = data.cargo.trim() || "Vendedor";
+      const horario = data.horario.trim() || null;
       if (nome.length < 2) throw new Error("Informe um nome válido.");
       if (whatsapp.length < 10)
         throw new Error("WhatsApp inválido. Use DDI+DDD+número, ex: 5587991547820.");
       if (data.id) {
         return editAtendente({
-          data: { id: data.id, nome, whatsapp, cargo, foto_path: data.foto_path, ativo: data.ativo },
+          data: { id: data.id, nome, whatsapp, cargo, horario, foto_path: data.foto_path, ativo: data.ativo },
         });
       }
       return addAtendente({
-        data: { nome, whatsapp, cargo, foto_path: data.foto_path, ativo: data.ativo },
+        data: { nome, whatsapp, cargo, horario, foto_path: data.foto_path, ativo: data.ativo },
       });
     },
     onSuccess: (_r, vars) => {
@@ -300,6 +303,9 @@ function AtendentesPage() {
                       <Phone className="h-3 w-3" />
                       {a.whatsapp}
                     </div>
+                    {a.horario && (
+                      <div className="mt-1 text-xs text-muted-foreground">🕒 {a.horario}</div>
+                    )}
                   </div>
                 </div>
 
@@ -321,6 +327,7 @@ function AtendentesPage() {
                           nome: a.nome,
                           whatsapp: a.whatsapp,
                           cargo: a.cargo || "Vendedor",
+                          horario: a.horario || "",
                           foto_path: a.foto_path,
                           ativo: a.ativo,
                         })
@@ -415,6 +422,18 @@ function AtendentesPage() {
                   value={form.cargo}
                   onChange={(e) => setForm({ ...form, cargo: e.target.value })}
                   placeholder="Ex: Vendedor"
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Horário de atendimento
+                </label>
+                <input
+                  value={form.horario}
+                  maxLength={80}
+                  onChange={(e) => setForm({ ...form, horario: e.target.value })}
+                  placeholder="Ex: Seg a Sex, 8h às 18h"
                   className="input"
                 />
               </div>

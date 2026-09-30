@@ -9,7 +9,7 @@ import { listCategoriasFn, getProdutoFn } from "@/lib/products.functions";
 import { downloadImage, downloadImagesAsZip, getImageUrl } from "@/lib/storage";
 import { brl } from "@/lib/format";
 import { useCart, MIN_PECAS_PERSONALIZACAO } from "@/lib/cart";
-import { getGruposPersonalizacao } from "@/lib/personalizacao";
+import { parsePersonalizacoes, agruparPersonalizacoes } from "@/lib/personalizacao";
 import { Plus, Minus, ShoppingBag, ChevronLeft, Download, Images, FileText, Bell, X, Share2, Copy, Check, QrCode } from "lucide-react";
 import React from "react";
 const downloadProductPDF = async (p: any) => {
@@ -69,7 +69,9 @@ function ProductPage() {
   const { data: p } = useSuspenseQuery({
     queryKey: ["produto", id],
     queryFn: () => getProdutoFn({ data: id }),
-    staleTime: 1000 * 30,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   });
   const { data: categorias = [] } = useSuspenseQuery({
     queryKey: ["categorias"],
@@ -97,21 +99,22 @@ function ProductPage() {
     [p, categorias],
   );
 
+  const opcoesProduto = useMemo(() => parsePersonalizacoes((p as any)?.personalizacoes), [p]);
+  // Com uma única opção, o botão "Personalizar" já aplica o acréscimo (detalhes em contato)
+  const opcaoUnica = opcoesProduto.length === 1 ? opcoesProduto[0] : null;
+  const ehBermuda = !!opcaoUnica;
   const gruposPerso = useMemo(
-    () =>
-      getGruposPersonalizacao(
-        p?.nome,
-        categoriaAtual?.nome,
-        (p as any)?.personalizacao_tipo ?? null,
-      ),
-    [p, categoriaAtual],
+    () => (opcoesProduto.length > 1 ? agruparPersonalizacoes(opcoesProduto) : []),
+    [opcoesProduto],
   );
   const opcoesPersoSelecionadas = useMemo(
-    () =>
-      gruposPerso
+    () => [
+      ...gruposPerso
         .flatMap((g) => g.opcoes)
         .filter((o) => persoSel.includes(o.id)),
-    [gruposPerso, persoSel],
+      ...(personalizado && opcaoUnica ? [{ id: opcaoUnica.id, label: opcaoUnica.label, preco: opcaoUnica.preco }] : []),
+    ],
+    [gruposPerso, persoSel, personalizado, opcaoUnica],
   );
   const adicionalPerso = opcoesPersoSelecionadas.reduce((s, o) => s + o.preco, 0);
 
@@ -625,24 +628,39 @@ function ProductPage() {
                                  if (!disponivel)
                                    return (
                                      <td key={t} className="p-2 text-center">
-                                       {v.quantidade_estoque > 0 ? (
-                                         <span
-                                           title="Todo o estoque já está no seu carrinho"
-                                           className="mx-auto inline-flex items-center rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
-                                         >
-                                           No carrinho
-                                         </span>
-                                       ) : (
-                                         <button
-                                           type="button"
-                                           onClick={() => setRestock({ cor: c.nome, tam: t })}
-                                           title="Avise-me por WhatsApp quando repor"
-                                           className="mx-auto inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:border-brand hover:text-brand"
-                                         >
-                                           <Bell className="h-3 w-3" />
-                                           Avise-me
-                                         </button>
-                                       )}
+                                       <div className="flex flex-col items-center gap-1">
+                                         {v.quantidade_estoque > 0 ? (
+                                           <>
+                                             <span
+                                               title="Todo o estoque já está no seu carrinho"
+                                               className="mx-auto inline-flex items-center rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground"
+                                             >
+                                               No carrinho
+                                             </span>
+                                             <span
+                                               title="Estoque disponível"
+                                               className="text-[9px] font-medium tabular-nums text-muted-foreground"
+                                             >
+                                               {livre} disp.
+                                             </span>
+                                           </>
+                                         ) : (
+                                           <>
+                                             <button
+                                               type="button"
+                                               onClick={() => setRestock({ cor: c.nome, tam: t })}
+                                               title="Avise-me por WhatsApp quando repor"
+                                               className="mx-auto inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                                             >
+                                               <Bell className="h-3 w-3" />
+                                               Avise-me
+                                             </button>
+                                             <span className="text-[9px] font-medium tabular-nums text-muted-foreground">
+                                               Esgotado
+                                             </span>
+                                           </>
+                                         )}
+                                       </div>
                                      </td>
                                    );
                                 return (
@@ -676,6 +694,12 @@ function ProductPage() {
                                           </button>
                                         </div>
                                       )}
+                                      <span
+                                        title="Estoque disponível"
+                                        className="text-[9px] font-medium tabular-nums text-muted-foreground"
+                                      >
+                                        {livre} disp.
+                                      </span>
                                     </div>
                                   </td>
                                 );
@@ -689,7 +713,7 @@ function ProductPage() {
                 )}
 
                 <div
-                  className={`rounded-2xl border border-border bg-card p-4 ${gruposPerso.length === 0 ? "hidden" : ""}`}
+                  className={`rounded-2xl border border-border bg-card p-4 ${gruposPerso.length === 0 && !ehBermuda ? "hidden" : ""}`}
                 >
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -704,6 +728,16 @@ function ProductPage() {
                         Pedido mínimo de {MIN_PECAS_PERSONALIZACAO} peças da categoria
                         {categoriaAtual?.nome ? ` ${categoriaAtual.nome}` : ""} para produtos personalizados.
                       </span>
+                      {ehBermuda && (
+                        <>
+                          <span className="mt-1 block text-xs text-muted-foreground">
+                            Personalizações são definidas em contato.
+                          </span>
+                          <span className="mt-1 block text-xs font-semibold text-primary">
+                            + {brl(opcaoUnica?.preco ?? 0)} por peça
+                          </span>
+                        </>
+                      )}
                     </span>
                   </label>
                   {personalizado && gruposPerso.length > 0 && (

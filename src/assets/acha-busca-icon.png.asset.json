@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "af86d747-d4b7-4076-aa25-5c19b33be11c",
-  "project_id": "07a0350e-8d9e-45a8-accc-22bbc9ef3783",
-  "url": "/__l5e/assets-v1/af86d747-d4b7-4076-aa25-5c19b33be11c/acha-busca-icon.png",
-  "r2_key": "a/v1/07a0350e-8d9e-45a8-accc-22bbc9ef3783/af86d747-d4b7-4076-aa25-5c19b33be11c/acha-busca-icon.png",
-  "original_filename": "acha-busca-icon.png",
-  "size": 46575,
   "content_type": "image/png",
-  "created_at": "2026-07-22T18:29:21Z"
+  "created_at": "2026-07-22T18:29:21Z",
+  "original_filename": "acha-busca-icon.png",
+  "project_id": "299306d4-cdbe-4bed-bb72-c118295585bb",
+  "r2_key": "a/v1/299306d4-cdbe-4bed-bb72-c118295585bb/af86d747-d4b7-4076-aa25-5c19b33be11c/acha-busca-icon.png",
+  "size": 46575,
+  "url": "/__l5e/assets-v1/af86d747-d4b7-4076-aa25-5c19b33be11c/acha-busca-icon.png",
+  "version": 1
 }

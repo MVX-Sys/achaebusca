@@ -9,6 +9,7 @@ export type AtendenteRow = {
   whatsapp: string;
   foto_path: string | null;
   cargo: string | null;
+  horario: string | null;
   ativo: boolean;
   criado_em: string;
 };
@@ -62,6 +63,7 @@ export const createAtendente = createServerFn({ method: "POST" })
       whatsapp: whatsappSchema,
       foto_path: z.string().optional().nullable(),
       cargo: cargoSchema.optional(),
+      horario: z.string().trim().max(80).optional().nullable(),
       ativo: z.boolean().optional(),
     })
   )
@@ -75,6 +77,7 @@ export const createAtendente = createServerFn({ method: "POST" })
         whatsapp: data.whatsapp,
         foto_path: data.foto_path ?? null,
         cargo: data.cargo || "Vendedor",
+        horario: data.horario || null,
         ativo: data.ativo ?? true,
       })
       .select()
@@ -94,6 +97,7 @@ export const updateAtendente = createServerFn({ method: "POST" })
       whatsapp: whatsappSchema.optional(),
       foto_path: z.string().optional().nullable(),
       cargo: cargoSchema.optional(),
+      horario: z.string().trim().max(80).optional().nullable(),
       ativo: z.boolean().optional(),
     })
   )
