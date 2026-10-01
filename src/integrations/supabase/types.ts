@@ -56,7 +56,6 @@ export type Database = {
           cargo: string | null
           criado_em: string | null
           foto_path: string | null
-          horario: string | null
           id: string
           nome: string
           whatsapp: string
@@ -66,7 +65,6 @@ export type Database = {
           cargo?: string | null
           criado_em?: string | null
           foto_path?: string | null
-          horario?: string | null
           id?: string
           nome: string
           whatsapp: string
@@ -76,7 +74,6 @@ export type Database = {
           cargo?: string | null
           criado_em?: string | null
           foto_path?: string | null
-          horario?: string | null
           id?: string
           nome?: string
           whatsapp?: string
@@ -149,54 +146,6 @@ export type Database = {
           tipo_desconto?: string
           validade?: string | null
           valor_desconto?: number
-        }
-        Relationships: []
-      }
-      estoque_historico: {
-        Row: {
-          cor: string | null
-          criado_em: string
-          diferenca: number
-          id: string
-          origem: string
-          produto_id: string | null
-          produto_nome: string | null
-          quantidade_anterior: number
-          quantidade_nova: number
-          tamanho: string | null
-          user_email: string | null
-          user_id: string | null
-          variacao_id: string | null
-        }
-        Insert: {
-          cor?: string | null
-          criado_em?: string
-          diferenca?: number
-          id?: string
-          origem?: string
-          produto_id?: string | null
-          produto_nome?: string | null
-          quantidade_anterior?: number
-          quantidade_nova?: number
-          tamanho?: string | null
-          user_email?: string | null
-          user_id?: string | null
-          variacao_id?: string | null
-        }
-        Update: {
-          cor?: string | null
-          criado_em?: string
-          diferenca?: number
-          id?: string
-          origem?: string
-          produto_id?: string | null
-          produto_nome?: string | null
-          quantidade_anterior?: number
-          quantidade_nova?: number
-          tamanho?: string | null
-          user_email?: string | null
-          user_id?: string | null
-          variacao_id?: string | null
         }
         Relationships: []
       }
@@ -396,7 +345,6 @@ export type Database = {
           novidade: boolean
           ordem: number
           personalizacao_tipo: string | null
-          personalizacoes: Json
           preco: number
           preco_promocional: number | null
           promocao: boolean
@@ -415,7 +363,6 @@ export type Database = {
           novidade?: boolean
           ordem?: number
           personalizacao_tipo?: string | null
-          personalizacoes?: Json
           preco: number
           preco_promocional?: number | null
           promocao?: boolean
@@ -434,7 +381,6 @@ export type Database = {
           novidade?: boolean
           ordem?: number
           personalizacao_tipo?: string | null
-          personalizacoes?: Json
           preco?: number
           preco_promocional?: number | null
           promocao?: boolean
