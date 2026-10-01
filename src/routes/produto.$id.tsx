@@ -56,7 +56,7 @@ export const Route = createFileRoute("/produto/$id")({
   component: ProductPage,
   errorComponent: ({ error }) => (
     <div className="p-10 text-center text-sm text-muted-foreground">
-      {error.message}
+      {error instanceof Error ? error.message : String(error)}
     </div>
   ),
   notFoundComponent: () => (
