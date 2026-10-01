@@ -77,7 +77,6 @@ export const createAtendente = createServerFn({ method: "POST" })
         whatsapp: data.whatsapp,
         foto_path: data.foto_path ?? null,
         cargo: data.cargo || "Vendedor",
-        horario: data.horario || null,
         ativo: data.ativo ?? true,
       })
       .select()
@@ -103,7 +102,7 @@ export const updateAtendente = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { id, ...updates } = data;
+    const { id, horario: _horario, ...updates } = data;
     if (updates.whatsapp) await assertNoDuplicate(supabase, updates.whatsapp, id);
     const { data: atendente, error } = await supabase
       .from("atendentes")
