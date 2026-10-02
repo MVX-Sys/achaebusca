@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/admin/categorias")({
 });
 
 type Cat = { id: string; nome: string; slug: string; ordem: number };
+type Prod = { id: string; nome: string; categoria_id: string | null };
 
 function slugify(s: string) {
   return s
@@ -116,20 +117,35 @@ function CategoriasPage() {
   }
 
   async function moverProdutos() {
-    if (!moverDe || !moverPara) return;
+    if (!moverDe || !moverPara || selecionados.size === 0) return;
     setBusy(true);
     const { error } = await supabase
       .from("produtos")
       .update({ categoria_id: moverPara })
-      .eq("categoria_id", moverDe.id);
+      .in("id", Array.from(selecionados));
     setBusy(false);
     if (error) return toast.error("Erro ao mover produtos: " + error.message);
     const destino = cats.find((c) => c.id === moverPara)?.nome;
-    logAudit({ acao: "editar", entidade: "categoria", entidade_id: moverDe.id, descricao: `Moveu produtos de ${moverDe.nome} para ${destino}` });
-    toast.success(`Produtos movidos para ${destino}`);
+    logAudit({ acao: "editar", entidade: "categoria", entidade_id: moverDe.id, descricao: `Moveu ${selecionados.size} produto(s) de ${moverDe.nome} para ${destino}` });
+    toast.success(`${selecionados.size} produto(s) movidos para ${destino}`);
     setMoverDe(null);
     setMoverPara("");
+    setSelecionados(new Set());
     refresh();
+  }
+
+  function alternarSelecao(id: string) {
+    setSelecionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function alternarTodos() {
+    if (selecionados.size === prodsDaCategoria.length) setSelecionados(new Set());
+    else setSelecionados(new Set(prodsDaCategoria.map((p) => p.id)));
   }
 
   async function excluir(c: Cat) {
