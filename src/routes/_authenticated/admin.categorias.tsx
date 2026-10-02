@@ -30,6 +30,7 @@ function CategoriasPage() {
   const [editNome, setEditNome] = useState("");
   const [moverDe, setMoverDe] = useState<Cat | null>(null);
   const [moverPara, setMoverPara] = useState("");
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -37,7 +38,7 @@ function CategoriasPage() {
     queryFn: async () => {
       const [{ data: cats, error }, { data: prods, error: e2 }] = await Promise.all([
         supabase.from("categorias").select("id,nome,slug,ordem").order("ordem"),
-        supabase.from("produtos").select("categoria_id"),
+        supabase.from("produtos").select("id,nome,categoria_id").order("nome"),
       ]);
       if (error) throw error;
       if (e2) throw e2;
@@ -45,11 +46,13 @@ function CategoriasPage() {
       (prods ?? []).forEach((p) => {
         if (p.categoria_id) contagem[p.categoria_id] = (contagem[p.categoria_id] ?? 0) + 1;
       });
-      return { cats: (cats ?? []) as Cat[], contagem };
+      return { cats: (cats ?? []) as Cat[], contagem, prods: (prods ?? []) as Prod[] };
     },
   });
   const cats = data?.cats ?? [];
   const contagem = data?.contagem ?? {};
+  const prods = data?.prods ?? [];
+  const prodsDaCategoria = moverDe ? prods.filter((p) => p.categoria_id === moverDe.id) : [];
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["admin-categorias"] });
