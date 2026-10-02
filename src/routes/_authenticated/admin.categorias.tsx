@@ -243,7 +243,7 @@ function CategoriasPage() {
                   ) : (
                     <>
                       <IconBtn title="Renomear" onClick={() => { setEditId(c.id); setEditNome(c.nome); }}><Pencil className="h-4 w-4" /></IconBtn>
-                      <IconBtn title="Mover produtos para outra categoria" onClick={() => { setMoverDe(c); setMoverPara(""); }} disabled={(contagem[c.id] ?? 0) === 0}><ArrowRightLeft className="h-4 w-4" /></IconBtn>
+                      <IconBtn title="Mover produtos para outra categoria" onClick={() => { setMoverDe(c); setMoverPara(""); setSelecionados(new Set()); }} disabled={(contagem[c.id] ?? 0) === 0}><ArrowRightLeft className="h-4 w-4" /></IconBtn>
                       <IconBtn title="Excluir" onClick={() => excluir(c)} danger disabled={busy}><Trash2 className="h-4 w-4" /></IconBtn>
                     </>
                   )}
@@ -259,27 +259,56 @@ function CategoriasPage() {
           <div className="w-full max-w-md space-y-4 rounded-2xl border border-border bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display text-lg font-semibold">Mover produtos</h2>
             <p className="text-sm text-muted-foreground">
-              Mover os {contagem[moverDe.id] ?? 0} produto(s) de <b>{moverDe.nome}</b> para:
+              Escolha os produtos de <b>{moverDe.nome}</b> que vão para outra categoria:
             </p>
+            <div className="rounded-xl border border-border">
+              <label className="flex cursor-pointer items-center gap-2 border-b border-border px-3 py-2 text-sm font-medium hover:bg-accent/50">
+                <input
+                  type="checkbox"
+                  checked={prodsDaCategoria.length > 0 && selecionados.size === prodsDaCategoria.length}
+                  onChange={alternarTodos}
+                  className="h-4 w-4 accent-primary"
+                />
+                Selecionar todos ({prodsDaCategoria.length})
+              </label>
+              <ul className="max-h-56 divide-y divide-border overflow-y-auto">
+                {prodsDaCategoria.map((p) => (
+                  <li key={p.id}>
+                    <label className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-accent/50">
+                      <input
+                        type="checkbox"
+                        checked={selecionados.has(p.id)}
+                        onChange={() => alternarSelecao(p.id)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      <span className="truncate">{p.nome}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <select
               value={moverPara}
               onChange={(e) => setMoverPara(e.target.value)}
               className="h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
             >
-              <option value="">Escolha a categoria</option>
+              <option value="">Mover para qual categoria?</option>
               {cats.filter((c) => c.id !== moverDe.id).map((c) => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
             </select>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setMoverDe(null)} className="rounded-full px-4 py-2 text-sm hover:bg-accent">Cancelar</button>
-              <button
-                onClick={moverProdutos}
-                disabled={busy || !moverPara}
-                className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-              >
-                Mover
-              </button>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">{selecionados.size} selecionado(s)</p>
+              <div className="flex gap-2">
+                <button onClick={() => setMoverDe(null)} className="rounded-full px-4 py-2 text-sm hover:bg-accent">Cancelar</button>
+                <button
+                  onClick={moverProdutos}
+                  disabled={busy || !moverPara || selecionados.size === 0}
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                >
+                  Mover selecionados
+                </button>
+              </div>
             </div>
           </div>
         </div>
