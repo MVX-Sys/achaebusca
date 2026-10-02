@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/config";
 import { canAccess, hasAdminPanelAccess, type PermissionKey } from "@/lib/permissions";
-import { LogOut, Package, Loader2, ExternalLink, Bell, History, Users, Database, UserPlus, TrendingUp, Menu, Ticket, Settings } from "lucide-react";
+import { LogOut, Package, Loader2, ExternalLink, Bell, History, Users, Database, UserPlus, TrendingUp, Menu, Ticket, Settings, Tags } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -27,6 +27,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/admin", label: "Produtos", icon: <Package className="h-4 w-4" />, perm: "produtos.manage", exact: true },
+  { to: "/admin/categorias", label: "Categorias", icon: <Tags className="h-4 w-4" />, perm: "produtos.manage" },
   { to: "/admin/atendentes", label: "Atendentes", icon: <UserPlus className="h-4 w-4" />, perm: "usuarios.manage" },
   { to: "/admin/vendas", label: "Vendas", icon: <TrendingUp className="h-4 w-4" />, perm: "pedidos.view" },
   { to: "/admin/cupons", label: "Cupons", icon: <Ticket className="h-4 w-4" />, perm: "cupons.manage" },
