@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Check, X, ArrowUp, ArrowDown, Tags, ArrowRightLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
+import { getImageUrl, getCachedImageUrl } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/admin/categorias")({
   head: () => ({ meta: [{ title: "Categorias — Painel" }] }),
@@ -12,7 +13,55 @@ export const Route = createFileRoute("/_authenticated/admin/categorias")({
 });
 
 type Cat = { id: string; nome: string; slug: string; ordem: number };
-type Prod = { id: string; nome: string; categoria_id: string | null };
+type Prod = {
+  id: string;
+  nome: string;
+  categoria_id: string | null;
+  hash_id: string | null;
+  imagens?: { storage_path: string; principal: boolean; ordem: number }[];
+};
+
+/** Caminho da imagem principal (ou a primeira) do produto. */
+function thumbOf(p: Prod): string | null {
+  const imgs = p.imagens ?? [];
+  if (imgs.length === 0) return null;
+  const sorted = [...imgs].sort(
+    (a, b) =>
+      (b.principal === true ? 1 : 0) - (a.principal === true ? 1 : 0) ||
+      (a.ordem ?? 0) - (b.ordem ?? 0),
+  );
+  return sorted[0]?.storage_path ?? null;
+}
+
+function ProdThumb({ path }: { path: string | null }) {
+  const [url, setUrl] = useState(() => getCachedImageUrl(path, { width: 96 }));
+  useEffect(() => {
+    if (!path) return;
+    setUrl(getCachedImageUrl(path, { width: 96 }));
+    let alive = true;
+    void getImageUrl(path, { width: 96 }).then((u) => {
+      if (alive && u) setUrl(u);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [path]);
+  if (!url)
+    return (
+      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-accent text-[9px] font-medium text-muted-foreground">
+        —
+      </div>
+    );
+  return (
+    <img
+      src={url}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className="h-10 w-10 shrink-0 rounded-md bg-accent object-cover"
+    />
+  );
+}
 
 function slugify(s: string) {
   return s
@@ -39,7 +88,7 @@ function CategoriasPage() {
     queryFn: async () => {
       const [{ data: cats, error }, { data: prods, error: e2 }] = await Promise.all([
         supabase.from("categorias").select("id,nome,slug,ordem").order("ordem"),
-        supabase.from("produtos").select("id,nome,categoria_id").order("nome"),
+        supabase.from("produtos").select("id,nome,hash_id,categoria_id, imagens:imagens_produto(storage_path,principal,ordem)").order("nome"),
       ]);
       if (error) throw error;
       if (e2) throw e2;
@@ -279,9 +328,15 @@ function CategoriasPage() {
                         type="checkbox"
                         checked={selecionados.has(p.id)}
                         onChange={() => alternarSelecao(p.id)}
-                        className="h-4 w-4 accent-primary"
+                        className="h-4 w-4 shrink-0 accent-primary"
                       />
+                      <ProdThumb path={thumbOf(p)} />
                       <span className="truncate">{p.nome}</span>
+                      {p.hash_id && (
+                        <span className="ml-auto shrink-0 rounded bg-accent px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide text-muted-foreground">
+                          {p.hash_id}
+                        </span>
+                      )}
                     </label>
                   </li>
                 ))}
