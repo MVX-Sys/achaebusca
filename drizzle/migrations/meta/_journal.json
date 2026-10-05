@@ -43,6 +43,13 @@
       "when": 1791174106394,
       "tag": "0005_estoque_historico",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791207113558,
+      "tag": "0006_restock_whatsapp_multiple_numbers",
+      "breakpoints": true
     }
   ]
 }
