@@ -592,7 +592,8 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
                     </p>
                     {item.produto_id && (
                       <Link
-                        to={`/produto/${item.produto_id}`}
+                        to="/produto/$id"
+                        params={{ id: item.produto_id }}
                         onClick={onClose}
                         className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                       >
