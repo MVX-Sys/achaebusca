@@ -457,6 +457,12 @@ export type Database = {
           hero_title: string | null
           hero_type: string
           id: string
+          manutencao_ativa: boolean
+          manutencao_fim: string | null
+          manutencao_inicio: string | null
+          manutencao_mensagem: string | null
+          restock_modo: string
+          restock_rodizio_idx: number
           restock_whatsapp: string | null
           restock_whatsapp_list: string[] | null
           updated_at: string | null
@@ -467,6 +473,12 @@ export type Database = {
           hero_title?: string | null
           hero_type?: string
           id?: string
+          manutencao_ativa?: boolean
+          manutencao_fim?: string | null
+          manutencao_inicio?: string | null
+          manutencao_mensagem?: string | null
+          restock_modo?: string
+          restock_rodizio_idx?: number
           restock_whatsapp?: string | null
           restock_whatsapp_list?: string[] | null
           updated_at?: string | null
@@ -477,6 +489,12 @@ export type Database = {
           hero_title?: string | null
           hero_type?: string
           id?: string
+          manutencao_ativa?: boolean
+          manutencao_fim?: string | null
+          manutencao_inicio?: string | null
+          manutencao_mensagem?: string | null
+          restock_modo?: string
+          restock_rodizio_idx?: number
           restock_whatsapp?: string | null
           restock_whatsapp_list?: string[] | null
           updated_at?: string | null
@@ -643,6 +661,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      next_restock_whatsapp: { Args: never; Returns: string[] }
       product_color_letter: { Args: { _produto_id: string }; Returns: string }
       set_pedido_status: {
         Args: { _pedido_id: string; _status: string }
