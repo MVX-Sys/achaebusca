@@ -64,6 +64,13 @@
       "when": 1791238641301,
       "tag": "0008_manutencao_site",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791240682464,
+      "tag": "0009_site_config_manutencao",
+      "breakpoints": true
     }
   ]
 }
