@@ -17,7 +17,7 @@ const downloadProductPDF = async (p: any) => {
   return fn(p);
 };
 import { BRAND } from "@/lib/config";
-import { getRestockWhatsapp } from "@/lib/restock-number";
+import { getRestockWhatsappList } from "@/lib/restock-number";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -139,12 +139,16 @@ function ProductPage() {
       const msg = `Olá! Meu nome é ${nome}. Gostaria de ser avisado(a) por WhatsApp quando o produto *${p.nome}* (cor ${restock.cor}, tamanho ${restock.tam}) da ${BRAND} for reposto.${
         restockObs.trim() ? `\n\nObservação: ${restockObs.trim()}` : ""
       }`;
-      const destino = await getRestockWhatsapp();
-      window.open(
-        `https://wa.me/${destino}?text=${encodeURIComponent(msg)}`,
-        "_blank",
-        "noopener,noreferrer",
-      );
+      const destinos = await getRestockWhatsappList();
+      destinos.forEach((destino, i) => {
+        window.setTimeout(() => {
+          window.open(
+            `https://wa.me/${destino}?text=${encodeURIComponent(msg)}`,
+            "_blank",
+            "noopener,noreferrer",
+          );
+        }, i * 400);
+      });
       toast.success("Solicitação registrada! Assim que houver reposição, avisaremos.");
       setRestock(null);
       setRestockNome("");
