@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { 
   Search, 
   User, 
@@ -11,9 +11,11 @@ import {
   CheckCircle2, 
   Users,
   Loader2,
-  Trash2
+  Trash2,
+  Eye,
+  X
 } from "lucide-react";
-import { listPedidos, updatePedidoStatus, deletePedido } from "@/lib/pedidos.functions";
+import { listPedidos, updatePedidoStatus, deletePedido, type PedidoRow } from "@/lib/pedidos.functions";
 import { listAtendentes } from "@/lib/atendentes.functions";
 import { listAdminUsers } from "@/lib/admin-users.functions";
 import { brl } from "@/lib/format";
@@ -46,6 +48,7 @@ function PedidosAdminPage() {
   const [periodo, setPeriodo] = useState<Periodo>("todos");
   const [atendenteId, setAtendenteId] = useState("todos");
   const [usuarioId, setUsuarioId] = useState("todos");
+  const [detalhesPedido, setDetalhesPedido] = useState<PedidoRow | null>(null);
 
   const { data: pedidos = [], isLoading } = useQuery({
     queryKey: ["admin-pedidos", periodo, atendenteId, usuarioId],
@@ -413,32 +416,41 @@ function PedidosAdminPage() {
                         <StatusBadge status={pedido.status} />
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {pedido.status === "cancelado" || pedido.status === "entregue" ? (
+                        <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={async () => {
-                              if (!window.confirm("Apagar este pedido definitivamente? Essa ação não pode ser desfeita.")) return;
-                              try {
-                                await removePedido({ data: { id: pedido.id } });
-                                qc.invalidateQueries({ queryKey: ["admin-pedidos"] });
-                                toast.success("Pedido apagado.");
-                              } catch (err) {
-                                console.error("Erro ao apagar pedido:", err);
-                                toast.error("Não foi possível apagar o pedido.");
-                              }
-                            }}
-                            title="Apagar pedido"
-                            className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setDetalhesPedido(pedido)}
+                            title="Ver detalhes do pedido"
+                            className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </button>
-                        ) : (
-                          <span
-                            className="inline-flex items-center text-muted-foreground/40"
-                            title="Só é possível apagar pedidos cancelados ou entregues"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </span>
-                        )}
+                          {pedido.status === "cancelado" || pedido.status === "entregue" ? (
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm("Apagar este pedido definitivamente? Essa ação não pode ser desfeita.")) return;
+                                try {
+                                  await removePedido({ data: { id: pedido.id } });
+                                  qc.invalidateQueries({ queryKey: ["admin-pedidos"] });
+                                  toast.success("Pedido apagado.");
+                                } catch (err) {
+                                  console.error("Erro ao apagar pedido:", err);
+                                  toast.error("Não foi possível apagar o pedido.");
+                                }
+                              }}
+                              title="Apagar pedido"
+                              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <span
+                              className="inline-flex items-center text-muted-foreground/40"
+                              title="Só é possível apagar pedidos cancelados ou entregues"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -448,6 +460,13 @@ function PedidosAdminPage() {
           </table>
         </div>
       </div>
+
+      {detalhesPedido && (
+        <PedidoDetalhesModal
+          pedido={detalhesPedido}
+          onClose={() => setDetalhesPedido(null)}
+        />
+      )}
     </div>
   );
 }
@@ -464,5 +483,173 @@ function StatusBadge({ status }: { status: string }) {
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${styles[status] || "bg-muted text-muted-foreground"}`}>
       {status}
     </span>
+  );
+}
+
+function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: () => void }) {
+  const pecas = pedido.itens?.reduce((s, i) => s + i.quantidade, 0) || 0;
+  const valorItens = pedido.itens?.reduce((s, i) => s + Number(i.preco_unitario) * i.quantidade, 0) || 0;
+  const desconto = Number(pedido.desconto_cupom || 0);
+  const total = Number(pedido.total);
+
+  const formatDate = (date: string) => {
+    if (!date) return "—";
+    return new Date(date).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const Row = ({ label, value }: { label: string; value: ReactNode }) => (
+    <div className="flex flex-col gap-0.5 rounded-lg bg-muted/40 px-3 py-2">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="truncate text-sm font-medium">{value}</span>
+    </div>
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-border bg-card shadow-2xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Cabeçalho */}
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card/95 px-5 py-4 backdrop-blur">
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-semibold">Detalhes do pedido</h2>
+            <p className="truncate font-mono text-xs text-muted-foreground">#{pedido.id}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <StatusBadge status={pedido.status} />
+            <button
+              onClick={onClose}
+              title="Fechar"
+              className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-5 p-5">
+          {/* Dados gerais */}
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Row label="Cliente" value={pedido.cliente_nome} />
+            <Row label="WhatsApp" value={pedido.cliente_whatsapp} />
+            <Row label="Data do pedido" value={formatDate(pedido.created_at)} />
+            <Row label="Atendente" value={pedido.atendente?.nome || "Não atribuído"} />
+            <Row label="Forma de pagamento" value={pedido.forma_pagamento || "—"} />
+            <Row
+              label="Forma de envio"
+              value={
+                pedido.forma_envio === "ENTREGA"
+                  ? "Entrega (transportadora a combinar)"
+                  : pedido.forma_envio || "—"
+              }
+            />
+            <Row label="Cupom aplicado" value={pedido.cupom_codigo || "—"} />
+            <Row label="Desconto do cupom" value={desconto > 0 ? `- ${brl(desconto)}` : "—"} />
+            <Row label="Total de peças" value={String(pecas)} />
+          </section>
+
+          {/* Itens */}
+          <section>
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Itens do pedido ({pedido.itens?.length || 0})
+            </h3>
+            <div className="space-y-2">
+              {(pedido.itens || []).map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="flex gap-3 rounded-xl border border-border bg-muted/30 p-3"
+                >
+                  <div className="flex h-16 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
+                    {item.imagem_url ? (
+                      <img src={item.imagem_url} alt="" className="h-full w-full object-contain" loading="lazy" />
+                    ) : (
+                      <ShoppingBag className="h-5 w-5 text-muted-foreground/30" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="truncate text-sm font-semibold leading-tight">
+                        {item.nome_produto || item.detalhes?.nome || "Produto"}
+                      </p>
+                      <p className="shrink-0 text-sm font-semibold tabular-nums">
+                        {brl(Number(item.preco_unitario) * item.quantidade)}
+                      </p>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {item.quantidade}x {brl(Number(item.preco_unitario))} • Cor:{" "}
+                      {item.cor || item.detalhes?.cor || "—"} • Tamanho:{" "}
+                      {item.tamanho || item.detalhes?.tamanho || "—"}
+                    </p>
+                    {item.produto_id && (
+                      <Link
+                        to={`/produto/${item.produto_id}`}
+                        onClick={onClose}
+                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                      >
+                        Ver produto na loja
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Observações */}
+          {pedido.observacoes && (
+            <section>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Observações
+              </h3>
+              <p className="whitespace-pre-wrap rounded-lg bg-muted/40 px-3 py-2 text-sm">
+                {pedido.observacoes}
+              </p>
+            </section>
+          )}
+
+          {/* Resumo financeiro */}
+          <section className="rounded-xl border border-border p-4">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Resumo
+            </h3>
+            <div className="space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Itens ({pecas} {pecas === 1 ? "peça" : "peças"})</span>
+                <span className="tabular-nums">{brl(valorItens)}</span>
+              </div>
+              {desconto > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Desconto (cupom {pedido.cupom_codigo})</span>
+                  <span className="tabular-nums text-success">- {brl(desconto)}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
+                <span>Total</span>
+                <span className="tabular-nums">{brl(total)}</span>
+              </div>
+            </div>
+          </section>
+
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={onClose}
+              className="rounded-full border border-border px-5 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
