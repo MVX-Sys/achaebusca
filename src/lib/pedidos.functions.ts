@@ -31,7 +31,7 @@ export type PedidoRow = {
   forma_pagamento: string | null;
   forma_envio: string | null;
   observacoes: string | null;
-  endereco?: Record<string, unknown> | null;
+  endereco?: { formaEntrega?: string } | null;
   cupom_codigo?: string | null;
   desconto_cupom?: number | null;
   itens?: PedidoItem[];
