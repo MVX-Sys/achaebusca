@@ -3,7 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/config";
-import { getRestockWhatsapp, setRestockWhatsapp } from "@/lib/restock-number";
+import {
+  getRestockWhatsappList,
+  setRestockWhatsappList,
+  getRestockModo,
+  setRestockModo,
+  type RestockModo,
+} from "@/lib/restock-number";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import {
@@ -578,20 +584,42 @@ function SolicitacoesPage() {
 
 function NumeroAviso() {
   const qc = useQueryClient();
-  const { data: numero = "" } = useQuery({
+  const { data: numeros = [] } = useQuery({
     queryKey: ["restock-whatsapp"],
-    queryFn: getRestockWhatsapp,
+    queryFn: getRestockWhatsappList,
   });
+  const { data: modo = "rodizio" } = useQuery({ queryKey: ["restock-modo"], queryFn: getRestockModo });
+  const trocarModo = async (m: RestockModo) => {
+    try {
+      await setRestockModo(m);
+      await qc.invalidateQueries({ queryKey: ["restock-modo"] });
+      toast.success(m === "rodizio" ? "Avisos em rodízio: um número por vez." : "Avisos para todos os números.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível alterar.");
+    }
+  };
   const [editando, setEditando] = useState(false);
-  const [valor, setValor] = useState("");
+  const [lista, setLista] = useState<string[]>([]);
+  const [novo, setNovo] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  const adicionar = () => {
+    const digitos = novo.replace(/\D/g, "");
+    if (!digitos) return;
+    if (lista.includes(digitos)) {
+      toast.error("Esse número já está na lista.");
+      return;
+    }
+    setLista([...lista, digitos]);
+    setNovo("");
+  };
 
   const salvar = async () => {
     try {
       setSalvando(true);
-      await setRestockWhatsapp(valor);
+      await setRestockWhatsappList(lista);
       await qc.invalidateQueries({ queryKey: ["restock-whatsapp"] });
-      toast.success("Número de aviso atualizado.");
+      toast.success("Números de aviso atualizados.");
       setEditando(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível salvar.");
@@ -603,38 +631,77 @@ function NumeroAviso() {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        <Phone className="h-4 w-4" /> Número que recebe os avisos
+        <Phone className="h-4 w-4" /> Números que recebem os avisos
       </div>
       {editando ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <input
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            placeholder="5581997480691"
-            className="w-48 rounded-full border border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-foreground"
-          />
-          <button
-            onClick={salvar}
-            disabled={salvando}
-            className="rounded-full bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground disabled:opacity-60"
-          >
-            Salvar
-          </button>
-          <button
-            onClick={() => setEditando(false)}
-            className="rounded-full border border-input px-3 py-1.5 text-sm"
-          >
-            Cancelar
-          </button>
+        <div className="mt-2 space-y-2">
+          {lista.map((n) => (
+            <div key={n} className="flex items-center gap-2">
+              <span className="rounded-full bg-accent/50 px-3 py-1.5 text-sm tabular-nums">
+                {n}
+              </span>
+              <button
+                onClick={() => setLista(lista.filter((x) => x !== n))}
+                className="rounded-full border border-input px-2.5 py-1 text-xs text-destructive hover:bg-destructive/10"
+              >
+                Remover
+              </button>
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={novo}
+              onChange={(e) => setNovo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionar();
+                }
+              }}
+              placeholder="5581997480691"
+              className="w-48 rounded-full border border-input bg-background px-3 py-1.5 text-sm outline-none focus:border-foreground"
+            />
+            <button
+              onClick={adicionar}
+              className="rounded-full border border-input px-3 py-1.5 text-sm"
+            >
+              Adicionar
+            </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <button
+              onClick={salvar}
+              disabled={salvando || lista.length === 0}
+              className="rounded-full bg-brand px-3 py-1.5 text-sm font-medium text-brand-foreground disabled:opacity-60"
+            >
+              Salvar
+            </button>
+            <button
+              onClick={() => setEditando(false)}
+              className="rounded-full border border-input px-3 py-1.5 text-sm"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="mt-2 flex items-center gap-3">
-          <p className="font-display text-lg font-semibold tabular-nums">
-            {numero || "—"}
-          </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {numeros.length === 0 ? (
+            <p className="font-display text-lg font-semibold">—</p>
+          ) : (
+            numeros.map((n) => (
+              <span
+                key={n}
+                className="rounded-full bg-accent/50 px-3 py-1 font-display text-sm font-semibold tabular-nums"
+              >
+                {n}
+              </span>
+            ))
+          )}
           <button
             onClick={() => {
-              setValor(numero);
+              setLista(numeros);
+              setNovo("");
               setEditando(true);
             }}
             className="rounded-full border border-input px-3 py-1.5 text-sm"
@@ -643,8 +710,23 @@ function NumeroAviso() {
           </button>
         </div>
       )}
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-xs text-muted-foreground">Envio:</span>
+        {(["rodizio", "todos"] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => trocarModo(m)}
+            className={`rounded-full border px-3 py-1.5 text-xs ${modo === m ? "border-foreground bg-foreground text-background" : "border-input"}`}
+          >
+            {m === "rodizio" ? "Um número por vez (rodízio)" : "Todos os números"}
+          </button>
+        ))}
+      </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Com DDI e DDD, apenas números.
+        Com DDI e DDD, apenas números.{" "}
+        {modo === "rodizio"
+          ? "Cada pedido vai para um número, em sequência: o 1º para o primeiro, o 2º para o segundo, e assim por diante."
+          : "Todos os números da lista recebem cada aviso."}
       </p>
     </div>
   );

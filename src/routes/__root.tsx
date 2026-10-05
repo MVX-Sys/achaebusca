@@ -15,6 +15,7 @@ import { CartProvider } from "@/lib/cart";
 import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import { Toaster } from "sonner";
+import { MaintenanceGate } from "@/components/maintenance-gate";
 
 function NotFoundComponent() {
   return (
@@ -119,7 +120,9 @@ function RootComponent() {
       <ThemeProvider>
         <AuthProvider>
           <CartProvider>
-            <Outlet />
+            <MaintenanceGate>
+              <Outlet />
+            </MaintenanceGate>
             <div data-sonner-container>
               <Toaster 
                 position="top-right" 

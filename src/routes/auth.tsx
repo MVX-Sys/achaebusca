@@ -273,6 +273,13 @@ function AuthPage() {
                       className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-foreground"
                     />
                   </label>
+                  {mode === "signin" && (
+                    <div className="-mt-2 text-right">
+                      <Link to="/recuperar-senha" className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                        Esqueci minha senha
+                      </Link>
+                    </div>
+                  )}
 
                   {mode === "signup" && password.length > 0 && (
                     <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-4">

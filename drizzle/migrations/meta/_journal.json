@@ -36,6 +36,34 @@
       "when": 1790788464219,
       "tag": "0004_ensure_personalizacoes_reload_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791174106394,
+      "tag": "0005_estoque_historico",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791207113558,
+      "tag": "0006_restock_whatsapp_multiple_numbers",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791207809088,
+      "tag": "0007_restock_rodizio",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791238641301,
+      "tag": "0008_manutencao_site",
+      "breakpoints": true
     }
   ]
 }
