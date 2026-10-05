@@ -36,6 +36,13 @@
       "when": 1790788464219,
       "tag": "0004_ensure_personalizacoes_reload_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791174106394,
+      "tag": "0005_estoque_historico",
+      "breakpoints": true
     }
   ]
 }
