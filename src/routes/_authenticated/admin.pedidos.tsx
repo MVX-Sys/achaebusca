@@ -528,7 +528,7 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
           precoPromocional: null,
           promocaoAte: null,
           codigo: (it.detalhes as { codigo?: string } | null)?.codigo ?? null,
-          imagem: it.imagem_url || null,
+          foto: it.imagem_url || null,
           personalizacoes: it.detalhes?.personalizacoes || [],
         })),
         total: Number(pedido.total),
