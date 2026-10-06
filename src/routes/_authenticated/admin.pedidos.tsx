@@ -510,6 +510,45 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
     });
   };
 
+  const abrirPDF = async () => {
+    if (gerandoPdf) return;
+    setGerandoPdf(true);
+    try {
+      await downloadOrderPDF({
+        items: (pedido.itens || []).map((it) => ({
+          produtoId: it.produto_id || "",
+          nome: it.nome_produto,
+          cor: it.cor || "",
+          tamanho: it.tamanho || "",
+          quantidade: it.quantidade,
+          preco: Number(it.preco_unitario),
+          precoPromocional: null,
+          promocaoAte: null,
+          codigo: (it.detalhes as { codigo?: string } | null)?.codigo ?? null,
+          imagem: it.imagem_url || null,
+          personalizacoes: it.detalhes?.personalizacoes || [],
+        })),
+        total: Number(pedido.total),
+        formaEnvio: pedido.forma_envio || "—",
+        formaEntrega: pedido.endereco?.formaEntrega,
+        formaPagamento: pedido.forma_pagamento || "—",
+        observacoes: pedido.observacoes || undefined,
+        cliente: {
+          nome: pedido.cliente_nome,
+          whatsapp: pedido.cliente_whatsapp,
+        },
+        cupom: pedido.cupom_codigo
+          ? { codigo: pedido.cupom_codigo, desconto: Number(pedido.desconto_cupom || 0) }
+          : undefined,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar o PDF do pedido.");
+    } finally {
+      setGerandoPdf(false);
+    }
+  };
+
   const Row = ({ label, value }: { label: string; value: ReactNode }) => (
     <div className="flex flex-col gap-0.5 rounded-lg bg-muted/40 px-3 py-2">
       <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
@@ -534,6 +573,15 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <StatusBadge status={pedido.status} />
+            <button
+              onClick={abrirPDF}
+              disabled={gerandoPdf}
+              title="Baixar PDF do pedido"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+            >
+              {gerandoPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+              PDF
+            </button>
             <button
               onClick={onClose}
               title="Fechar"
