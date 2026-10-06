@@ -516,6 +516,9 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
     try {
       await downloadOrderPDF({
         items: (pedido.itens || []).map((it) => ({
+          key: it.id,
+          variacaoId: null,
+          hexCor: null,
           produtoId: it.produto_id || "",
           nome: it.nome_produto,
           cor: it.cor || "",
