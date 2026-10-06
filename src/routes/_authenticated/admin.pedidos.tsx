@@ -493,6 +493,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: () => void }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
   const pecas = pedido.itens?.reduce((s, i) => s + i.quantidade, 0) || 0;
   const valorItens = pedido.itens?.reduce((s, i) => s + Number(i.preco_unitario) * i.quantidade, 0) || 0;
   const desconto = Number(pedido.desconto_cupom || 0);
