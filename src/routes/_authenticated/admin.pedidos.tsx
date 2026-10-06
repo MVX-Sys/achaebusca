@@ -13,7 +13,8 @@ import {
   Loader2,
   Trash2,
   Eye,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { listPedidos, updatePedidoStatus, deletePedido, type PedidoRow } from "@/lib/pedidos.functions";
 import { listAtendentes } from "@/lib/atendentes.functions";
@@ -22,7 +23,7 @@ import { brl } from "@/lib/format";
 import { BRAND } from "@/lib/config";
 import { useAuth } from "@/lib/auth";
 import { ExportMenu } from "@/components/export-menu";
-import { downloadTableCSV, downloadTablePDF, downloadTableXLSX } from "@/lib/pdf";
+import { downloadTableCSV, downloadTablePDF, downloadTableXLSX, downloadOrderPDF } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   head: () => ({
