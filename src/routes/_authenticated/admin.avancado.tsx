@@ -67,10 +67,23 @@ function AvancadoPage() {
       };
       
       // 2. Access Info (Logs by day for chart and detailed list)
-      const { data: logs } = await supabase
-        .from("admin_audit_log")
-        .select("*")
-        .order("criado_em", { ascending: false });
+      // Busca paginada: o banco limita cada consulta a 1000 linhas
+      const fetchAll = async (table: "admin_audit_log" | "pedidos", cols: string) => {
+        const all: any[] = [];
+        const PAGE = 1000;
+        for (let from = 0; ; from += PAGE) {
+          const { data, error } = await supabase
+            .from(table)
+            .select(cols)
+            .order("criado_em", { ascending: false })
+            .range(from, from + PAGE - 1);
+          if (error || !data?.length) break;
+          all.push(...data);
+          if (data.length < PAGE) break;
+        }
+        return all;
+      };
+      const logs = await fetchAll("admin_audit_log", "*");
 
       // 3. User stats
       const { count: userCount } = await supabase
@@ -78,9 +91,7 @@ function AvancadoPage() {
         .select("*", { count: 'exact', head: true });
 
       // 4. Order stats
-      const { data: orders } = await supabase
-        .from("pedidos")
-        .select("total, criado_em");
+      const orders = await fetchAll("pedidos", "total, criado_em");
 
       // 5. Database Table Stats
       const tables = ["produtos", "pedidos", "usuarios", "categorias", "variacoes_produto", "cupons"];
