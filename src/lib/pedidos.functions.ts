@@ -16,6 +16,7 @@ export type PedidoItem = {
     nome: string;
     cor: string;
     tamanho: string;
+    personalizacoes?: { id: string; label: string; preco: number }[];
   } | null;
 };
 
