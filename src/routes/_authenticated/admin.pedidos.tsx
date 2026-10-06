@@ -13,7 +13,8 @@ import {
   Loader2,
   Trash2,
   Eye,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { listPedidos, updatePedidoStatus, deletePedido, type PedidoRow } from "@/lib/pedidos.functions";
 import { listAtendentes } from "@/lib/atendentes.functions";
@@ -22,7 +23,7 @@ import { brl } from "@/lib/format";
 import { BRAND } from "@/lib/config";
 import { useAuth } from "@/lib/auth";
 import { ExportMenu } from "@/components/export-menu";
-import { downloadTableCSV, downloadTablePDF, downloadTableXLSX } from "@/lib/pdf";
+import { downloadTableCSV, downloadTablePDF, downloadTableXLSX, downloadOrderPDF } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/pedidos")({
   head: () => ({
@@ -492,6 +493,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: () => void }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
   const pecas = pedido.itens?.reduce((s, i) => s + i.quantidade, 0) || 0;
   const valorItens = pedido.itens?.reduce((s, i) => s + Number(i.preco_unitario) * i.quantidade, 0) || 0;
   const desconto = Number(pedido.desconto_cupom || 0);
@@ -506,6 +508,48 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const abrirPDF = async () => {
+    if (gerandoPdf) return;
+    setGerandoPdf(true);
+    try {
+      await downloadOrderPDF({
+        items: (pedido.itens || []).map((it) => ({
+          key: it.id,
+          variacaoId: "",
+          hexCor: "",
+          produtoId: it.produto_id || "",
+          nome: it.nome_produto,
+          cor: it.cor || "",
+          tamanho: it.tamanho || "",
+          quantidade: it.quantidade,
+          preco: Number(it.preco_unitario),
+          precoPromocional: null,
+          promocaoAte: null,
+          codigo: (it.detalhes as { codigo?: string } | null)?.codigo ?? null,
+          foto: it.imagem_url || null,
+          personalizacoes: it.detalhes?.personalizacoes || [],
+        })),
+        total: Number(pedido.total),
+        formaEnvio: pedido.forma_envio || "—",
+        formaEntrega: pedido.endereco?.formaEntrega,
+        formaPagamento: pedido.forma_pagamento || "—",
+        observacoes: pedido.observacoes || undefined,
+        cliente: {
+          nome: pedido.cliente_nome,
+          whatsapp: pedido.cliente_whatsapp,
+        },
+        cupom: pedido.cupom_codigo
+          ? { codigo: pedido.cupom_codigo, desconto: Number(pedido.desconto_cupom || 0) }
+          : undefined,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar o PDF do pedido.");
+    } finally {
+      setGerandoPdf(false);
+    }
   };
 
   const Row = ({ label, value }: { label: string; value: ReactNode }) => (
@@ -532,6 +576,15 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <StatusBadge status={pedido.status} />
+            <button
+              onClick={abrirPDF}
+              disabled={gerandoPdf}
+              title="Baixar PDF do pedido"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+            >
+              {gerandoPdf ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+              PDF
+            </button>
             <button
               onClick={onClose}
               title="Fechar"
