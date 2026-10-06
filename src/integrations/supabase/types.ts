@@ -382,6 +382,27 @@ export type Database = {
           },
         ]
       }
+      personalizacao_presets: {
+        Row: {
+          criado_em: string
+          id: string
+          nome: string
+          opcoes: Json
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          nome: string
+          opcoes?: Json
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          nome?: string
+          opcoes?: Json
+        }
+        Relationships: []
+      }
       produtos: {
         Row: {
           ativo: boolean
