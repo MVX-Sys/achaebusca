@@ -402,6 +402,11 @@ function PedidosAdminPage() {
                                     <p className="text-[9px] text-muted-foreground leading-tight">
                                       {item.quantidade}x • {item.cor || item.detalhes?.cor} • {item.tamanho || item.detalhes?.tamanho}
                                     </p>
+                                    {(item.detalhes?.personalizacoes?.length ?? 0) > 0 && (
+                                      <p className="text-[9px] font-medium text-brand leading-tight">
+                                        {item.detalhes!.personalizacoes!.map((o) => o.label).join(", ")}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               ))}
@@ -590,6 +595,14 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
                       {item.cor || item.detalhes?.cor || "—"} • Tamanho:{" "}
                       {item.tamanho || item.detalhes?.tamanho || "—"}
                     </p>
+                    {(item.detalhes?.personalizacoes?.length ?? 0) > 0 && (
+                      <p className="mt-0.5 text-xs font-medium text-brand">
+                        Personalização:{" "}
+                        {item.detalhes!.personalizacoes!
+                          .map((o) => `${o.label} (+${brl(o.preco)})`)
+                          .join(", ")}
+                      </p>
+                    )}
                     {item.produto_id && (
                       <Link
                         to="/produto/$id"

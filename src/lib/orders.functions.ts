@@ -82,13 +82,19 @@ export const createOrder = createServerFn({ method: "POST" })
         p.preco_promocional == null ? null : Number(p.preco_promocional),
         p.promocao_ate ?? null,
       );
-      const precos = new Map(parsePersonalizacoes(p.personalizacoes).map((o) => [o.id, o.preco]));
+      const opcoes = parsePersonalizacoes(p.personalizacoes);
+      const precos = new Map(opcoes.map((o) => [o.id, o.preco]));
       const extras = (item.personalizacoes ?? []).reduce(
         (s, id) => s + (precos.get(id) ?? 0),
         0,
       );
       const preco_unitario = round2(base + extras);
       subtotal += preco_unitario * item.quantidade;
+
+      const personalizacoesEscolhidas = (item.personalizacoes ?? [])
+        .map((id) => opcoes.find((o) => o.id === id))
+        .filter((o): o is NonNullable<typeof o> => !!o)
+        .map((o) => ({ id: o.id, label: o.label, preco: o.preco }));
 
       return {
         ...item,
@@ -97,6 +103,7 @@ export const createOrder = createServerFn({ method: "POST" })
         nome: p.nome as string,
         cor: v.nome_cor as string,
         tamanho: v.tamanho as string,
+        personalizacoesDetalhes: personalizacoesEscolhidas,
       };
     });
     subtotal = round2(subtotal);
@@ -201,7 +208,12 @@ export const createOrder = createServerFn({ method: "POST" })
       variacao_id: item.variacao_id,
       quantidade: item.quantidade,
       preco_unitario: item.preco_unitario,
-      detalhes: { cor: item.cor, tamanho: item.tamanho, nome: item.nome },
+      detalhes: {
+        cor: item.cor,
+        tamanho: item.tamanho,
+        nome: item.nome,
+        personalizacoes: item.personalizacoesDetalhes,
+      },
     }));
 
     const { error: itemsErr } = await supabase.from("pedidos_itens").insert(orderItems);
