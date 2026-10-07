@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 import { StockHistory } from "@/components/stock-history";
 import { GestaoClickPanel } from "@/components/gestaoclick-panel";
+import { GestaoClickConferencia } from "@/components/gestaoclick-conferencia";
 import { useServerFn } from "@tanstack/react-start";
 import { syncGestaoClick } from "@/lib/gestaoclick.functions";
 
@@ -190,6 +191,7 @@ function EstoquePage() {
       </div>
 
       <GestaoClickPanel />
+      <GestaoClickConferencia />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold">Nova variação</h2>
