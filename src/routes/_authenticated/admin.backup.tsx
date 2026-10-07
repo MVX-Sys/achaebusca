@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
+import { BackupGestaoClick } from "@/components/backup-gestaoclick";
 import {
   Download,
   Upload,
@@ -488,6 +489,8 @@ function BackupPage() {
           )}
         </section>
       </div>
+
+      <BackupGestaoClick />
 
       {report && (
         <section className="rounded-2xl border border-border bg-card p-5">
