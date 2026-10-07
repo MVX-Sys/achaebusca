@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { gcListProdutos, pushEstoqueGestaoClick } from "./gestaoclick.server";
+import { GC_LOTE, gcListProdutos, listProdutosVinculados, pushEstoqueGestaoClick } from "./gestaoclick.server";
+export const GC_LOTE_CLIENTE = 12;
+void GC_LOTE;
 
 async function assertStaff(context: { supabase: any; userId: string }) {
   const { data } = await context.supabase.rpc("is_staff", { _user_id: context.userId });
@@ -46,6 +48,13 @@ export const autoLinkGestaoClick = createServerFn({ method: "POST" })
     }
     const r = await pushEstoqueGestaoClick(ligados);
     return { vinculados: ligados.length, ...r };
+  });
+
+export const listVinculadosGestaoClick = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    return await listProdutosVinculados();
   });
 
 export const syncGestaoClick = createServerFn({ method: "POST" })

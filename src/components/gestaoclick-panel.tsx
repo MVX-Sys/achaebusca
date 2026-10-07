@@ -6,8 +6,10 @@ import { RefreshCw, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   autoLinkGestaoClick,
+  GC_LOTE_CLIENTE,
   linkGestaoClick,
   listGestaoClickProdutos,
+  listVinculadosGestaoClick,
   syncGestaoClick,
 } from "@/lib/gestaoclick.functions";
 
@@ -17,6 +19,7 @@ export function GestaoClickPanel() {
   const link = useServerFn(linkGestaoClick);
   const autoLink = useServerFn(autoLinkGestaoClick);
   const sync = useServerFn(syncGestaoClick);
+  const listVinc = useServerFn(listVinculadosGestaoClick);
   const [aberto, setAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -87,8 +90,13 @@ export function GestaoClickPanel() {
             disabled={ocupado}
             onClick={() =>
               rodar(async () => {
-                const r = await sync({ data: {} });
-                return `Enviado: ${r.ok} ok${r.erros ? `, ${r.erros} com erro` : ""}`;
+                const ids = await listVinc();
+                let ok = 0, erros = 0;
+                for (let i = 0; i < ids.length; i += GC_LOTE_CLIENTE) {
+                  const r = await sync({ data: { produtoIds: ids.slice(i, i + GC_LOTE_CLIENTE) } });
+                  ok += r.ok; erros += r.erros;
+                }
+                return `Enviado: ${ok} ok${erros ? `, ${erros} com erro` : ""}`;
               })
             }
             className="flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground"
