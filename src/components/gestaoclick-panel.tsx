@@ -11,6 +11,7 @@ import {
   listGestaoClickProdutos,
   listVinculadosGestaoClick,
   syncGestaoClick,
+  syncMaoDuplaGestaoClick,
 } from "@/lib/gestaoclick.functions";
 
 export function GestaoClickPanel() {
@@ -20,6 +21,7 @@ export function GestaoClickPanel() {
   const autoLink = useServerFn(autoLinkGestaoClick);
   const sync = useServerFn(syncGestaoClick);
   const listVinc = useServerFn(listVinculadosGestaoClick);
+  const maoDupla = useServerFn(syncMaoDuplaGestaoClick);
   const [aberto, setAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -85,6 +87,23 @@ export function GestaoClickPanel() {
             className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
           >
             Vincular pelo nome
+          </button>
+          <button
+            disabled={ocupado}
+            onClick={() =>
+              rodar(async () => {
+                let r = await maoDupla();
+                const t = { ...r };
+                for (let i = 0; r.restantes && i < 20; i++) {
+                  r = await maoDupla();
+                  t.atualizados += r.atualizados; t.desativadosSite += r.desativadosSite; t.criadosSite += r.criadosSite; t.criadosGc += r.criadosGc; t.desativadosGc += r.desativadosGc;
+                }
+                return `Atualizados: ${t.atualizados} · Novos no site: ${t.criadosSite} (inativos) · Novos no Gestão Click: ${t.criadosGc} · Desativados: ${t.desativadosSite + t.desativadosGc}`;
+              })
+            }
+            className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
+          >
+            Sincronizar produtos (2 lados)
           </button>
           <button
             disabled={ocupado}
