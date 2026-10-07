@@ -135,7 +135,7 @@ export async function syncMaoDupla() {
         await gcDesativar(p.gestaoclick_id); escritasGc++; r.desativadosGc++;
         continue;
       }
-      const upd: Record<string, unknown> = {};
+      const upd: { nome?: string; preco?: number } = {};
       if (g.nome && g.nome !== p.nome) upd.nome = g.nome;
       if (g.preco > 0 && Number(g.preco) !== Number(p.preco)) upd.preco = g.preco;
       if (Object.keys(upd).length) { await supabaseAdmin.from("produtos").update(upd).eq("id", p.id); r.atualizados++; }
