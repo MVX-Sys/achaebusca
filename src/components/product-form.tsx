@@ -7,6 +7,7 @@ import { getImageUrl } from "@/lib/storage";
 import { Trash2, Plus, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
+import { syncGestaoClick } from "@/lib/gestaoclick.functions";
 import { MODELOS_PERSONALIZACAO, parsePersonalizacoes, getGruposPersonalizacao, isBermudaPersonalizavel, OPCAO_BERMUDA, type OpcaoProduto } from "@/lib/personalizacao";
 
 // Sugere personalizações a partir do nome e da categoria (regras antigas),
@@ -544,6 +545,7 @@ export function ProductForm({ produtoId }: { produtoId?: string }) {
       }
 
       toast.success("Produto salvo!");
+      if (pid) syncGestaoClick({ data: { produtoIds: [pid] } }).catch((e) => console.error("Gestão Click:", e));
       await logAudit({
         acao: produtoId ? "editar" : "criar",
         entidade: "produto",

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { syncGestaoClick } from "@/lib/gestaoclick.functions";
 import { useMemo, useState, type ReactNode } from "react";
 import { 
   Search, 
@@ -42,6 +43,7 @@ function PedidosAdminPage() {
   const fetchPedidos = useServerFn(listPedidos);
   const updateStatus = useServerFn(updatePedidoStatus);
   const removePedido = useServerFn(deletePedido);
+  const syncGc = useServerFn(syncGestaoClick);
   const fetchAtendentes = useServerFn(listAtendentes);
   const fetchUsers = useServerFn(listAdminUsers);
 
@@ -346,6 +348,7 @@ function PedidosAdminPage() {
 
                               try {
                                 await updateStatus({ data: { id: pedido.id, status: newStatus } });
+                                syncGc({ data: { pedidoId: pedido.id } }).catch((e) => console.error("Gestão Click:", e));
                                 qc.invalidateQueries({ queryKey: ["admin-pedidos"] });
                                 qc.invalidateQueries({ queryKey: ["admin-produtos"] });
                                 toast.success("Status atualizado.");

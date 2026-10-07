@@ -223,6 +223,13 @@ export const createOrder = createServerFn({ method: "POST" })
       throw itemsErr;
     }
 
+    try {
+      const { pushEstoqueGestaoClick } = await import("./gestaoclick.server");
+      await pushEstoqueGestaoClick([...new Set(orderItems.map((i: any) => i.produto_id).filter(Boolean))] as string[]);
+    } catch (e) {
+      console.error("[gestaoclick] sync falhou", e);
+    }
+
     return { ...order, total: totalFinal, desconto_cupom: descontoCupom };
   });
 
