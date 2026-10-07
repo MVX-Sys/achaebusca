@@ -61,7 +61,7 @@ export function GestaoClickPanel() {
       toast.success(await fn());
     } catch (e) {
       console.error(e);
-      toast.error("Não foi possível falar com o Gestão Click");
+      toast.error(`Não foi possível falar com o Gestão Click: ${(e as Error)?.message ?? e}`);
     }
     setOcupado(false);
     recarregar();

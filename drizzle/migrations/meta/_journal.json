@@ -85,6 +85,13 @@
       "when": 1791384171276,
       "tag": "0011_gestaoclick_link",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791413597867,
+      "tag": "0012_gestaoclick_log_staff_insert",
+      "breakpoints": true
     }
   ]
 }

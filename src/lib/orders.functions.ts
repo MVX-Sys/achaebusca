@@ -225,7 +225,7 @@ export const createOrder = createServerFn({ method: "POST" })
 
     try {
       const { pushEstoqueGestaoClick } = await import("./gestaoclick.server");
-      await pushEstoqueGestaoClick([...new Set(orderItems.map((i: any) => i.produto_id).filter(Boolean))] as string[]);
+      await pushEstoqueGestaoClick([...new Set(orderItems.map((i: any) => i.produto_id).filter(Boolean))] as string[], supabase);
     } catch (e) {
       console.error("[gestaoclick] sync falhou", e);
     }

@@ -1,4 +1,19 @@
 // Server-only GestãoClick API helpers. Never import from client code.
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Db = SupabaseClient<Database>;
+
+/** Uses the service-role client when that key exists (Lovable hosting); otherwise the caller's client (self-hosting). */
+async function getDb(client?: Db): Promise<Db> {
+  if (process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return supabaseAdmin as unknown as Db;
+  }
+  if (!client) throw new Error("Sem acesso ao banco para sincronizar com o Gestão Click");
+  return client;
+}
+
 const BASE = "https://api.gestaoclick.com";
 
 function headers() {
@@ -51,8 +66,8 @@ export async function gcSetEstoque(id: string, estoque: number) {
 export const GC_LOTE = 12;
 
 /** Pushes the site's total stock for every GestãoClick product linked to the given site products. */
-export async function pushEstoqueGestaoClick(produtoIds: string[] | "all") {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export async function pushEstoqueGestaoClick(produtoIds: string[] | "all", client?: Db) {
+  const supabaseAdmin = await getDb(client);
   let q = supabaseAdmin.from("produtos").select("id,gestaoclick_id").not("gestaoclick_id", "is", null);
   if (produtoIds !== "all") {
     if (!produtoIds.length) return { ok: 0, erros: 0 };
@@ -111,8 +126,8 @@ export async function pushEstoqueGestaoClick(produtoIds: string[] | "all") {
 }
 
 /** All linked site product ids, used by the client to sync in batches. */
-export async function listProdutosVinculados() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export async function listProdutosVinculados(client?: Db) {
+  const supabaseAdmin = await getDb(client);
   const { data } = await supabaseAdmin.from("produtos").select("id,gestaoclick_id").not("gestaoclick_id", "is", null);
   const vistos = new Set<string>();
   return (data ?? []).filter((p) => !vistos.has(p.gestaoclick_id!) && vistos.add(p.gestaoclick_id!)).map((p) => p.id);
@@ -134,8 +149,8 @@ async function gcDesativar(id: string) {
 }
 
 /** Two-way product sync, run on demand. Deletions only deactivate. Limited writes per call. */
-export async function syncMaoDupla() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export async function syncMaoDupla(client?: Db) {
+  const supabaseAdmin = await getDb(client);
   const gcLista = await gcListProdutosCompleto();
   const gcMap = new Map(gcLista.map((g) => [g.id, g]));
   const { data: prods } = await supabaseAdmin.from("produtos").select("id,nome,preco,ativo,codigo_base,gestaoclick_id");

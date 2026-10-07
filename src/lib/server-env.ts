@@ -32,6 +32,10 @@ export function bridgeServerEnv(runtimeEnv?: unknown) {
     for (const key of KEYS) {
       setIfMissing(key, (runtimeEnv as Record<string, unknown>)[key]);
     }
+    // Every other string binding (e.g. third-party API keys such as GESTAOCLICK_*).
+    for (const [key, value] of Object.entries(runtimeEnv as Record<string, unknown>)) {
+      setIfMissing(key, value);
+    }
     // Allow VITE_-prefixed bindings too
     setIfMissing("SUPABASE_URL", (runtimeEnv as any).VITE_SUPABASE_URL);
     setIfMissing(

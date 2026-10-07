@@ -27,7 +27,7 @@ export const linkGestaoClick = createServerFn({ method: "POST" })
     await assertStaff(context);
     const { error } = await context.supabase.from("produtos").update({ gestaoclick_id: data.gcId }).eq("id", data.produtoId);
     if (error) throw new Error(error.message);
-    if (data.gcId) await pushEstoqueGestaoClick([data.produtoId]);
+    if (data.gcId) await pushEstoqueGestaoClick([data.produtoId], context.supabase);
     return { ok: true };
   });
 
@@ -46,7 +46,7 @@ export const autoLinkGestaoClick = createServerFn({ method: "POST" })
       await context.supabase.from("produtos").update({ gestaoclick_id: gid }).eq("id", p.id);
       ligados.push(p.id);
     }
-    const r = await pushEstoqueGestaoClick(ligados);
+    const r = await pushEstoqueGestaoClick(ligados, context.supabase);
     return { vinculados: ligados.length, ...r };
   });
 
@@ -54,7 +54,7 @@ export const listVinculadosGestaoClick = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertStaff(context);
-    return await listProdutosVinculados();
+    return await listProdutosVinculados(context.supabase);
   });
 
 export const syncGestaoClick = createServerFn({ method: "POST" })
@@ -69,7 +69,7 @@ export const syncGestaoClick = createServerFn({ method: "POST" })
       const { data: itens } = await context.supabase.from("pedidos_itens").select("produto_id").eq("pedido_id", data.pedidoId);
       ids = (itens ?? []).map((i: any) => i.produto_id).filter(Boolean);
     }
-    return await pushEstoqueGestaoClick(ids);
+    return await pushEstoqueGestaoClick(ids, context.supabase);
   });
 
 export const syncMaoDuplaGestaoClick = createServerFn({ method: "POST" })
@@ -77,5 +77,5 @@ export const syncMaoDuplaGestaoClick = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertStaff(context);
     const { syncMaoDupla } = await import("./gestaoclick.server");
-    return await syncMaoDupla();
+    return await syncMaoDupla(context.supabase);
   });
