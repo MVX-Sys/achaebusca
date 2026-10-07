@@ -232,33 +232,51 @@ export async function gcExportarProdutos() {
   return out;
 }
 
-/** Restores site products from GestãoClick: updates name/wholesale price of linked or same-code products, imports the rest as inactive. Never deletes. */
-export async function restaurarDoGestaoClick(client?: Db) {
+export type GcEntrada = { id: string; nome: string; codigo_interno: string; preco: number; ativo: boolean };
+export type Mudanca = {
+  gcId: string; tipo: "atualizar" | "vincular" | "importar"; produtoId: string | null;
+  nomeAtual: string | null; nomeNovo: string; precoAtual: number | null; precoNovo: number; codigo: string;
+};
+const limpa = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+/** Computes the changes a GestãoClick restore would make, without writing anything. */
+export async function planejarRestauracao(client: Db | undefined, entrada?: GcEntrada[]) {
   const db = await getDb(client);
-  const gc = await gcListProdutosCompleto();
+  const gc = entrada ?? (await gcListProdutosCompleto());
   const { data: prods } = await db.from("produtos").select("id,nome,preco,codigo_base,gestaoclick_id");
   const porGid = new Map((prods ?? []).filter((p) => p.gestaoclick_id).map((p) => [p.gestaoclick_id!, p]));
-  const limpa = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const porCodigo = new Map((prods ?? []).filter((p) => !p.gestaoclick_id).map((p) => [limpa(p.codigo_base), p]));
-  const r = { atualizados: 0, vinculados: 0, importados: 0, erros: 0 };
+  const out: Mudanca[] = [];
   for (const g of gc) {
     if (!g.ativo) continue;
     let p = porGid.get(g.id);
-    const upd: Record<string, unknown> = {};
-    if (!p && g.codigo_interno) {
-      p = porCodigo.get(limpa(g.codigo_interno));
-      if (p) { upd.gestaoclick_id = g.id; r.vinculados++; }
-    }
+    let tipo: Mudanca["tipo"] = "atualizar";
+    if (!p && g.codigo_interno) { p = porCodigo.get(limpa(g.codigo_interno)); if (p) tipo = "vincular"; }
+    const codigo = limpa(g.codigo_interno || g.nome).slice(0, 20) || `GC${g.id}`;
     if (p) {
-      if (g.nome && g.nome !== p.nome) upd.nome = g.nome;
-      if (g.preco > 0 && Number(g.preco) !== Number(p.preco)) upd.preco = g.preco;
-      if (Object.keys(upd).length) {
-        const { error } = await db.from("produtos").update(upd as any).eq("id", p.id);
-        if (error) r.erros++; else r.atualizados++;
-      }
+      const nomeMuda = !!g.nome && g.nome !== p.nome;
+      const precoMuda = g.preco > 0 && Number(g.preco) !== Number(p.preco);
+      if (tipo === "atualizar" && !nomeMuda && !precoMuda) continue;
+      out.push({ gcId: g.id, tipo, produtoId: p.id, nomeAtual: p.nome, nomeNovo: g.nome || p.nome, precoAtual: Number(p.preco), precoNovo: g.preco > 0 ? g.preco : Number(p.preco), codigo });
     } else {
-      const codigo = limpa(g.codigo_interno || g.nome).slice(0, 20) || `GC${g.id}`;
-      const { error } = await db.from("produtos").insert({ nome: g.nome, preco: g.preco || 0, codigo_base: codigo, ativo: false, gestaoclick_id: g.id } as any);
+      out.push({ gcId: g.id, tipo: "importar", produtoId: null, nomeAtual: null, nomeNovo: g.nome, precoAtual: null, precoNovo: g.preco || 0, codigo });
+    }
+  }
+  return out;
+}
+
+/** Applies only the reviewed changes. Never deletes. */
+export async function aplicarRestauracao(client: Db | undefined, mudancas: Mudanca[]) {
+  const db = await getDb(client);
+  const r = { atualizados: 0, vinculados: 0, importados: 0, erros: 0 };
+  for (const m of mudancas) {
+    if (m.produtoId) {
+      const upd: Record<string, unknown> = { nome: m.nomeNovo, preco: m.precoNovo };
+      if (m.tipo === "vincular") upd.gestaoclick_id = m.gcId;
+      const { error } = await db.from("produtos").update(upd as any).eq("id", m.produtoId);
+      if (error) r.erros++; else m.tipo === "vincular" ? r.vinculados++ : r.atualizados++;
+    } else {
+      const { error } = await db.from("produtos").insert({ nome: m.nomeNovo, preco: m.precoNovo, codigo_base: m.codigo, ativo: false, gestaoclick_id: m.gcId } as any);
       if (error) r.erros++; else r.importados++;
     }
   }
