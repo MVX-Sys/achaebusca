@@ -26,7 +26,7 @@ export function GestaoClickConferencia() {
         .not("gestaoclick_id", "is", null);
       const mapa = new Map<string, Linha>();
       for (const p of (prods ?? []) as any[]) {
-        const l = mapa.get(p.gestaoclick_id) ?? { gcId: p.gestaoclick_id, nomes: [], codigos: [], atual: 0, enviado: null, quando: null, erro: null };
+        const l: Linha = mapa.get(p.gestaoclick_id) ?? { gcId: p.gestaoclick_id, nomes: [] as string[], codigos: [] as string[], atual: 0, enviado: null, quando: null, erro: null };
         l.nomes.push(p.nome);
         if (p.hash_id) l.codigos.push(p.hash_id);
         l.atual += (p.variacoes ?? []).reduce((s: number, v: any) => s + Math.max(0, v.quantidade_estoque), 0);
