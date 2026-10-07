@@ -56,6 +56,25 @@ export async function pushEstoqueGestaoClick(produtoIds: string[] | "all") {
   let q = supabaseAdmin.from("produtos").select("id,gestaoclick_id").not("gestaoclick_id", "is", null);
   if (produtoIds !== "all") {
     if (!produtoIds.length) return { ok: 0, erros: 0 };
+    // Products created on the site that aren't in GestãoClick yet: create them there and link.
+    const { data: novos } = await supabaseAdmin
+      .from("produtos")
+      .select("id,nome,preco,hash_id,codigo_base,ativo")
+      .in("id", produtoIds)
+      .is("gestaoclick_id", null);
+    for (const p of (novos ?? []).slice(0, 4)) {
+      if (!p.ativo) continue;
+      const { data: vs } = await supabaseAdmin.from("variacoes_produto").select("quantidade_estoque").eq("produto_id", p.id);
+      const estoque = (vs ?? []).reduce((s, v) => s + Math.max(0, v.quantidade_estoque), 0);
+      try {
+        const gid = await gcCriar({ nome: p.nome, codigo: p.hash_id || p.codigo_base, preco: Number(p.preco), estoque });
+        await supabaseAdmin.from("produtos").update({ gestaoclick_id: gid }).eq("id", p.id);
+        await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: gid, nome: p.nome, estoque, ok: true, mensagem: "Criado no Gestão Click" });
+      } catch (e) {
+        console.error("[gestaoclick] criar", p.id, e);
+        await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: "-", nome: p.nome, estoque, ok: false, mensagem: `Falha ao criar: ${String((e as Error).message ?? e).slice(0, 250)}` });
+      }
+    }
     const { data: alvo } = await supabaseAdmin.from("produtos").select("gestaoclick_id").in("id", produtoIds).not("gestaoclick_id", "is", null);
     const gids = [...new Set((alvo ?? []).map((p) => p.gestaoclick_id!))];
     if (!gids.length) return { ok: 0, erros: 0 };
