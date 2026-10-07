@@ -27,9 +27,7 @@ async function gcGet(id: string): Promise<any | null> {
   const r = await fetch(`${BASE}/produtos/${id}`, { headers: headers() });
   const j: any = await r.json().catch(() => null);
   if (j?.code === 200 && j.data?.id) return j.data;
-  const r2 = await fetch(`${BASE}/produtos?id=${encodeURIComponent(id)}`, { headers: headers() });
-  const j2: any = await r2.json().catch(() => null);
-  return (j2?.data ?? []).find((p: any) => String(p.id) === id) ?? null;
+  return null;
 }
 
 export async function gcSetEstoque(id: string, estoque: number) {
@@ -49,34 +47,54 @@ export async function gcSetEstoque(id: string, estoque: number) {
   return atual.nome as string;
 }
 
+/** Max GestãoClick products per call: the hosted worker limits outbound requests per request. */
+export const GC_LOTE = 12;
+
 /** Pushes the site's total stock for every GestãoClick product linked to the given site products. */
 export async function pushEstoqueGestaoClick(produtoIds: string[] | "all") {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let gcIds: string[];
-  if (produtoIds === "all") {
-    const { data } = await supabaseAdmin.from("produtos").select("gestaoclick_id").not("gestaoclick_id", "is", null);
-    gcIds = (data ?? []).map((p) => p.gestaoclick_id!) ;
-  } else {
+  let q = supabaseAdmin.from("produtos").select("id,gestaoclick_id").not("gestaoclick_id", "is", null);
+  if (produtoIds !== "all") {
     if (!produtoIds.length) return { ok: 0, erros: 0 };
-    const { data } = await supabaseAdmin.from("produtos").select("gestaoclick_id").in("id", produtoIds).not("gestaoclick_id", "is", null);
-    gcIds = (data ?? []).map((p) => p.gestaoclick_id!);
+    const { data: alvo } = await supabaseAdmin.from("produtos").select("gestaoclick_id").in("id", produtoIds).not("gestaoclick_id", "is", null);
+    const gids = [...new Set((alvo ?? []).map((p) => p.gestaoclick_id!))];
+    if (!gids.length) return { ok: 0, erros: 0 };
+    q = q.in("gestaoclick_id", gids);
   }
-  gcIds = [...new Set(gcIds)];
+  const { data: prods } = await q;
+  const porGc = new Map<string, string[]>();
+  for (const p of prods ?? []) porGc.set(p.gestaoclick_id!, [...(porGc.get(p.gestaoclick_id!) ?? []), p.id]);
+  const gcIds = [...porGc.keys()].slice(0, GC_LOTE);
+  const todosIds = gcIds.flatMap((g) => porGc.get(g)!);
+  const { data: vars } = todosIds.length
+    ? await supabaseAdmin.from("variacoes_produto").select("produto_id,quantidade_estoque").in("produto_id", todosIds)
+    : { data: [] as { produto_id: string; quantidade_estoque: number }[] };
+  const porProd = new Map<string, number>();
+  for (const v of vars ?? []) porProd.set(v.produto_id, (porProd.get(v.produto_id) ?? 0) + Math.max(0, v.quantidade_estoque));
   let ok = 0, erros = 0;
-  for (const gid of gcIds) {
-    const { data: prods } = await supabaseAdmin.from("produtos").select("id").eq("gestaoclick_id", gid);
-    const ids = (prods ?? []).map((p) => p.id);
-    const { data: vars } = await supabaseAdmin.from("variacoes_produto").select("quantidade_estoque").in("produto_id", ids);
-    const total = (vars ?? []).reduce((s, v) => s + Math.max(0, v.quantidade_estoque), 0);
-    try {
-      const nome = await gcSetEstoque(gid, total);
-      ok++;
-      await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: gid, nome, estoque: total, ok: true });
-    } catch (e) {
-      erros++;
-      console.error("[gestaoclick]", gid, e);
-      await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: gid, estoque: total, ok: false, mensagem: String((e as Error).message ?? e).slice(0, 300) });
-    }
-  }
-  return { ok, erros };
+  const logs: any[] = [];
+  await Promise.all(
+    gcIds.map(async (gid) => {
+      const total = porGc.get(gid)!.reduce((s, id) => s + (porProd.get(id) ?? 0), 0);
+      try {
+        const nome = await gcSetEstoque(gid, total);
+        ok++;
+        logs.push({ gestaoclick_id: gid, nome, estoque: total, ok: true });
+      } catch (e) {
+        erros++;
+        console.error("[gestaoclick]", gid, e);
+        logs.push({ gestaoclick_id: gid, estoque: total, ok: false, mensagem: String((e as Error).message ?? e).slice(0, 300) });
+      }
+    }),
+  );
+  if (logs.length) await supabaseAdmin.from("gestaoclick_sync_log").insert(logs);
+  return { ok, erros, restantes: Math.max(0, porGc.size - gcIds.length) };
+}
+
+/** All linked site product ids, used by the client to sync in batches. */
+export async function listProdutosVinculados() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.from("produtos").select("id,gestaoclick_id").not("gestaoclick_id", "is", null);
+  const vistos = new Set<string>();
+  return (data ?? []).filter((p) => !vistos.has(p.gestaoclick_id!) && vistos.add(p.gestaoclick_id!)).map((p) => p.id);
 }
