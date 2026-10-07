@@ -88,10 +88,30 @@ export const exportarGestaoClick = createServerFn({ method: "GET" })
     return await gcExportarProdutos();
   });
 
-export const restaurarGestaoClick = createServerFn({ method: "POST" })
+const entradaSchema = z.object({
+  id: z.string().min(1).max(40), nome: z.string().min(1).max(300), codigo_interno: z.string().max(100),
+  preco: z.number().min(0).max(1e7), ativo: z.boolean(),
+});
+const mudancaSchema = z.object({
+  gcId: z.string().min(1).max(40), tipo: z.enum(["atualizar", "vincular", "importar"]), produtoId: z.string().uuid().nullable(),
+  nomeAtual: z.string().nullable(), nomeNovo: z.string().min(1).max(300), precoAtual: z.number().nullable(),
+  precoNovo: z.number().min(0).max(1e7), codigo: z.string().min(1).max(40),
+});
+
+export const previewRestauracaoGc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d) => z.object({ itens: z.array(entradaSchema).max(10000).optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
     await assertStaff(context);
-    const { restaurarDoGestaoClick } = await import("./gestaoclick.server");
-    return await restaurarDoGestaoClick(context.supabase);
+    const { planejarRestauracao } = await import("./gestaoclick.server");
+    return await planejarRestauracao(context.supabase, data.itens);
+  });
+
+export const aplicarRestauracaoGc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ mudancas: z.array(mudancaSchema).max(10000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const { aplicarRestauracao } = await import("./gestaoclick.server");
+    return await aplicarRestauracao(context.supabase, data.mudancas);
   });
