@@ -71,3 +71,11 @@ export const syncGestaoClick = createServerFn({ method: "POST" })
     }
     return await pushEstoqueGestaoClick(ids);
   });
+
+export const syncMaoDuplaGestaoClick = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { syncMaoDupla } = await import("./gestaoclick.server");
+    return await syncMaoDupla();
+  });
