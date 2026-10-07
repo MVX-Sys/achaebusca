@@ -6,6 +6,9 @@ import { Minus, Plus, Trash2, Save, Boxes, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 import { StockHistory } from "@/components/stock-history";
+import { GestaoClickPanel } from "@/components/gestaoclick-panel";
+import { useServerFn } from "@tanstack/react-start";
+import { syncGestaoClick } from "@/lib/gestaoclick.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/estoque")({
   head: () => ({ meta: [{ title: "Estoque — Painel" }] }),
@@ -80,11 +83,18 @@ function EstoquePage() {
     };
   }, [vars, limite]);
 
-  const refresh = () => {
+  const syncGc = useServerFn(syncGestaoClick);
+  const refresh = (produtoIds: (string | undefined | null)[] = []) => {
     qc.invalidateQueries({ queryKey: ["admin-estoque"] });
     qc.invalidateQueries({ queryKey: ["estoque-historico"] });
     qc.invalidateQueries({ queryKey: ["produtos"] });
+    const ids = [...new Set(produtoIds.filter(Boolean) as string[])];
+    if (ids.length)
+      syncGc({ data: { produtoIds: ids } })
+        .then(() => qc.invalidateQueries({ queryKey: ["gestaoclick-log"] }))
+        .catch((e) => console.error("Gestão Click:", e));
   };
+  const pidsDe = (ids: Iterable<string>) => [...ids].map((id) => vars.find((x) => x.id === id)?.produto_id);
 
   const valor = (v: Var) => ({ ...v, ...edits[v.id] });
   const setEdit = (id: string, patch: Partial<Var>) =>
@@ -109,7 +119,7 @@ function EstoquePage() {
     await logAudit({ acao: "editar", entidade: "variacao", descricao: `Estoque: ${ids.length} variação(ões) editada(s)` });
     setSalvando(false);
     setEdits({});
-    refresh();
+    refresh(pidsDe(ids));
     erros ? toast.error(`${erros} alteração(ões) não foram salvas`) : toast.success("Estoque atualizado");
   }
 
@@ -117,7 +127,7 @@ function EstoquePage() {
     const nova = Math.max(0, v.quantidade_estoque + delta);
     const { error } = await supabase.from("variacoes_produto").update({ quantidade_estoque: nova }).eq("id", v.id);
     if (error) return toast.error("Erro ao ajustar");
-    refresh();
+    refresh([v.produto_id]);
   }
 
   async function aplicarLote() {
@@ -132,9 +142,9 @@ function EstoquePage() {
     }
     await logAudit({ acao: "editar", entidade: "variacao", descricao: `Ajuste em lote (${loteModo} ${n}) em ${sel.size} variação(ões)` });
     setSalvando(false);
+    refresh(pidsDe(sel));
     setSel(new Set());
     setLote("");
-    refresh();
     toast.success("Ajuste em lote aplicado");
   }
 
@@ -143,7 +153,7 @@ function EstoquePage() {
     const { error } = await supabase.from("variacoes_produto").delete().eq("id", v.id);
     if (error) return toast.error("Não foi possível excluir (pode estar ligada a pedidos)");
     await logAudit({ acao: "excluir", entidade: "variacao", entidade_id: v.id, descricao: `${v.produto?.nome} ${v.nome_cor}/${v.tamanho}` });
-    refresh();
+    refresh([v.produto_id]);
     toast.success("Variação excluída");
   }
 
@@ -159,7 +169,7 @@ function EstoquePage() {
     if (error) return toast.error("Erro ao criar variação");
     await logAudit({ acao: "criar", entidade: "variacao", descricao: `Nova variação ${novo.nome_cor}/${novo.tamanho}` });
     setNovo({ ...novo, nome_cor: "", tamanho: "", qtd: "0" });
-    refresh();
+    refresh([novo.produto_id]);
     toast.success("Variação criada");
   }
 
@@ -178,6 +188,8 @@ function EstoquePage() {
         <Stat label={`Estoque baixo (≤${limite})`} v={totais.baixas} />
         <Stat label="Esgotadas" v={totais.zeradas} destaque />
       </div>
+
+      <GestaoClickPanel />
 
       <div className="rounded-2xl border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold">Nova variação</h2>
