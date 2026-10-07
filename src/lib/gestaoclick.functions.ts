@@ -79,3 +79,19 @@ export const syncMaoDuplaGestaoClick = createServerFn({ method: "POST" })
     const { syncMaoDupla } = await import("./gestaoclick.server");
     return await syncMaoDupla(context.supabase);
   });
+
+export const exportarGestaoClick = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { gcExportarProdutos } = await import("./gestaoclick.server");
+    return await gcExportarProdutos();
+  });
+
+export const restaurarGestaoClick = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { restaurarDoGestaoClick } = await import("./gestaoclick.server");
+    return await restaurarDoGestaoClick(context.supabase);
+  });

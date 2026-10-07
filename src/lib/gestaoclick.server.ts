@@ -202,8 +202,65 @@ async function gcListProdutosCompleto(): Promise<GcCompleto[]> {
     const j: any = await r.json();
     if (j?.code !== 200) throw new Error(j?.data?.mensagem ?? "Erro no Gestão Click");
     for (const p of j.data ?? [])
-      out.push({ id: String(p.id), nome: p.nome, codigo_interno: p.codigo_interno ?? "", preco: Number(p.valor_venda) || 0, ativo: String(p.ativo ?? "1") !== "0" });
+      out.push({ id: String(p.id), nome: p.nome, codigo_interno: p.codigo_interno ?? "", preco: precoAtacado(p), ativo: String(p.ativo ?? "1") !== "0" });
     if (!j.meta?.proxima_pagina) break;
   }
   return out;
+}
+
+/** Wholesale (ATACADO) price from GestãoClick, falling back to the default sale price. */
+export function precoAtacado(p: any): number {
+  const v = (p?.valores ?? []).find((x: any) => /atacado/i.test(String(x?.nome_tipo ?? "")));
+  const n = Number(v?.valor_venda);
+  return n > 0 ? n : Number(p?.valor_venda) || 0;
+}
+
+export async function gcExportarProdutos() {
+  const out: any[] = [];
+  for (let pagina = 1; pagina <= 50; pagina++) {
+    const r = await fetch(`${BASE}/produtos?limite=100&pagina=${pagina}`, { headers: headers() });
+    const j: any = await r.json();
+    if (j?.code !== 200) throw new Error(j?.data?.mensagem ?? "Erro no Gestão Click");
+    for (const p of j.data ?? [])
+      out.push({
+        id: String(p.id), nome: p.nome, codigo_interno: p.codigo_interno ?? "", codigo_barra: p.codigo_barra ?? "",
+        preco_atacado: precoAtacado(p), preco_varejo: Number(p.valor_venda) || 0,
+        estoque: Number(p.estoque) || 0, ativo: String(p.ativo ?? "1") !== "0",
+      });
+    if (!j.meta?.proxima_pagina) break;
+  }
+  return out;
+}
+
+/** Restores site products from GestãoClick: updates name/wholesale price of linked or same-code products, imports the rest as inactive. Never deletes. */
+export async function restaurarDoGestaoClick(client?: Db) {
+  const db = await getDb(client);
+  const gc = await gcListProdutosCompleto();
+  const { data: prods } = await db.from("produtos").select("id,nome,preco,codigo_base,gestaoclick_id");
+  const porGid = new Map((prods ?? []).filter((p) => p.gestaoclick_id).map((p) => [p.gestaoclick_id!, p]));
+  const limpa = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const porCodigo = new Map((prods ?? []).filter((p) => !p.gestaoclick_id).map((p) => [limpa(p.codigo_base), p]));
+  const r = { atualizados: 0, vinculados: 0, importados: 0, erros: 0 };
+  for (const g of gc) {
+    if (!g.ativo) continue;
+    let p = porGid.get(g.id);
+    const upd: Record<string, unknown> = {};
+    if (!p && g.codigo_interno) {
+      p = porCodigo.get(limpa(g.codigo_interno));
+      if (p) { upd.gestaoclick_id = g.id; r.vinculados++; }
+    }
+    if (p) {
+      if (g.nome && g.nome !== p.nome) upd.nome = g.nome;
+      if (g.preco > 0 && Number(g.preco) !== Number(p.preco)) upd.preco = g.preco;
+      if (Object.keys(upd).length) {
+        const { error } = await db.from("produtos").update(upd as any).eq("id", p.id);
+        if (error) r.erros++; else r.atualizados++;
+      }
+    } else {
+      const codigo = limpa(g.codigo_interno || g.nome).slice(0, 20) || `GC${g.id}`;
+      const { error } = await db.from("produtos").insert({ nome: g.nome, preco: g.preco || 0, codigo_base: codigo, ativo: false, gestaoclick_id: g.id } as any);
+      if (error) r.erros++; else r.importados++;
+    }
+  }
+  return r;
 }
