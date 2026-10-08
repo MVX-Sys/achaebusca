@@ -57,7 +57,7 @@ export const createOrder = createServerFn({ method: "POST" })
     const { data: variacoes, error: varErr } = await supabase
       .from("variacoes_produto")
       .select(
-        "id, produto_id, nome_cor, tamanho, quantidade_estoque, produtos(id, nome, ativo, preco, preco_promocional, promocao_ate, categoria_id, personalizacoes)",
+        "id, produto_id, nome_cor, tamanho, quantidade_estoque, produtos(id, nome, ativo, preco, preco_promocional, promocao_ate, categoria_id, personalizacoes, hash_id)",
       )
       .in("id", variacaoIds);
 

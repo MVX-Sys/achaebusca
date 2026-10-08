@@ -56,7 +56,7 @@ export const listPedidos = createServerFn({ method: "GET" })
       .select(`
         *,
         atendente:atendentes(nome),
-        itens:pedidos_itens(*)
+        itens:pedidos_itens(*, produto:produtos(hash_id))
       `)
       .order("criado_em", { ascending: false });
 
@@ -102,7 +102,7 @@ export const listPedidos = createServerFn({ method: "GET" })
             imagemUrl = signed?.signedUrl;
           }
         }
-        return { ...item, imagem_url: imagemUrl };
+        return { ...item, codigo: item.detalhes?.codigo ?? item.produto?.hash_id ?? null, imagem_url: imagemUrl };
       }));
 
       return {
