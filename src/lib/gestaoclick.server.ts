@@ -194,6 +194,36 @@ export async function syncMaoDupla(client?: Db) {
   return r;
 }
 
+/** Creates in GestãoClick every active site product that has no link yet. Limited writes per call. */
+export async function criarFaltantesNoGestaoClick(client?: Db) {
+  const supabaseAdmin = await getDb(client);
+  const { data: prods } = await supabaseAdmin
+    .from("produtos")
+    .select("id,nome,preco,hash_id,codigo_base")
+    .is("gestaoclick_id", null)
+    .eq("ativo", true)
+    .order("nome");
+  const r = { criados: 0, erros: 0, restantes: 0, total: (prods ?? []).length };
+  let escritas = 0;
+  for (const p of prods ?? []) {
+    if (escritas >= GC_LOTE) { r.restantes++; continue; }
+    const { data: vars } = await supabaseAdmin.from("variacoes_produto").select("quantidade_estoque").eq("produto_id", p.id);
+    const estoque = (vars ?? []).reduce((s, v) => s + Math.max(0, v.quantidade_estoque), 0);
+    escritas++;
+    try {
+      const gid = await gcCriar({ nome: p.nome, codigo: p.hash_id || p.codigo_base, preco: Number(p.preco), estoque });
+      await supabaseAdmin.from("produtos").update({ gestaoclick_id: gid }).eq("id", p.id);
+      await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: gid, nome: p.nome, estoque, ok: true, mensagem: "Criado no Gestão Click" });
+      r.criados++;
+    } catch (e) {
+      console.error("[gestaoclick] criar", p.id, e);
+      await supabaseAdmin.from("gestaoclick_sync_log").insert({ gestaoclick_id: "-", nome: p.nome, estoque, ok: false, mensagem: `Falha ao criar: ${String((e as Error).message ?? e).slice(0, 250)}` });
+      r.erros++;
+    }
+  }
+  return r;
+}
+
 type GcCompleto = { id: string; nome: string; codigo_interno: string; preco: number; ativo: boolean };
 async function gcListProdutosCompleto(): Promise<GcCompleto[]> {
   const out: GcCompleto[] = [];
