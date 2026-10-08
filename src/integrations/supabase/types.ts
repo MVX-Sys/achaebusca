@@ -312,6 +312,7 @@ export type Database = {
           endereco: Json | null
           forma_envio: string
           forma_pagamento: string
+          gestaoclick_venda_id: string | null
           id: string
           observacoes: string | null
           status: string
@@ -328,6 +329,7 @@ export type Database = {
           endereco?: Json | null
           forma_envio: string
           forma_pagamento: string
+          gestaoclick_venda_id?: string | null
           id?: string
           observacoes?: string | null
           status?: string
@@ -344,6 +346,7 @@ export type Database = {
           endereco?: Json | null
           forma_envio?: string
           forma_pagamento?: string
+          gestaoclick_venda_id?: string | null
           id?: string
           observacoes?: string | null
           status?: string
