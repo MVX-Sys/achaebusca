@@ -94,6 +94,25 @@ export function GestaoClickPanel() {
             disabled={ocupado}
             onClick={() =>
               rodar(async () => {
+                let r = await criarFaltantes();
+                const t = { ...r };
+                for (let i = 0; r.restantes && i < 30; i++) {
+                  r = await criarFaltantes();
+                  t.criados += r.criados; t.erros += r.erros;
+                }
+                return t.total === 0
+                  ? "Nenhum produto só do site — tudo já está no Gestão Click"
+                  : `Criados no Gestão Click: ${t.criados}${t.erros ? ` · ${t.erros} com erro` : ""}`;
+              })
+            }
+            className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
+          >
+            Enviar produtos do site
+          </button>
+          <button
+            disabled={ocupado}
+            onClick={() =>
+              rodar(async () => {
                 let r = await maoDupla();
                 const t = { ...r };
                 for (let i = 0; r.restantes && i < 20; i++) {
