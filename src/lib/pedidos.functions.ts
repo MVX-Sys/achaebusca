@@ -134,6 +134,12 @@ export const updatePedidoStatus = createServerFn({ method: "POST" })
       _status: data.status,
     });
     if (error) throw error;
+    try {
+      const { atualizarVendaGestaoClick } = await import("./gestaoclick.server");
+      await atualizarVendaGestaoClick(data.id, data.status, supabase as any);
+    } catch (e) {
+      console.error("[gestaoclick] venda status", e);
+    }
     return { success: true };
   });
 

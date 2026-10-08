@@ -312,3 +312,104 @@ export async function aplicarRestauracao(client: Db | undefined, mudancas: Mudan
   }
   return r;
 }
+
+// ---- Sales (vendas) ----
+const SIT_CONCRETIZADA = "4796729";
+const SIT_CANCELADA = "4796730";
+
+async function gcJson(r: Response): Promise<any> {
+  const t = await r.text();
+  const i = t.indexOf('{"code"');
+  try { return JSON.parse(i >= 0 ? t.slice(i) : t); } catch { return null; }
+}
+
+async function gcClienteId(nome: string, whatsapp: string | null): Promise<string> {
+  const dig = (whatsapp ?? "").replace(/\D/g, "");
+  const nomeLimpo = (nome || "Cliente do site").slice(0, 100);
+  const r = await fetch(`${BASE}/clientes?nome=${encodeURIComponent(nomeLimpo)}&limite=20`, { headers: headers() });
+  const j = await gcJson(r);
+  const lista: any[] = j?.code === 200 && Array.isArray(j.data) ? j.data : [];
+  const achado = lista.find((c) => dig && String(c.celular ?? c.telefone ?? "").replace(/\D/g, "").endsWith(dig.slice(-8)))
+    ?? lista.find((c) => String(c.nome).trim().toLowerCase() === nomeLimpo.trim().toLowerCase());
+  if (achado) return String(achado.id);
+  const c = await fetch(`${BASE}/clientes`, {
+    method: "POST", headers: headers(),
+    body: JSON.stringify({ tipo_pessoa: "PF", nome: nomeLimpo, celular: whatsapp ?? "" }),
+  });
+  const cj = await gcJson(c);
+  if (cj?.code !== 200 || !cj.data?.id) throw new Error(cj?.data?.mensagem ?? "Falha ao cadastrar cliente no Gestão Click");
+  return String(cj.data.id);
+}
+
+async function itensVendaGc(db: Db, pedidoId: string) {
+  const { data: itens } = await db.from("pedidos_itens").select("produto_id,quantidade,preco_unitario").eq("pedido_id", pedidoId);
+  const ids = [...new Set((itens ?? []).map((i) => i.produto_id).filter(Boolean))] as string[];
+  const { data: prods } = ids.length ? await db.from("produtos").select("id,gestaoclick_id").in("id", ids) : { data: [] as any[] };
+  const gidDe = new Map((prods ?? []).map((p: any) => [p.id, p.gestaoclick_id]));
+  const agg = new Map<string, { qtd: number; valor: number }>();
+  for (const i of itens ?? []) {
+    const gid = i.produto_id ? gidDe.get(i.produto_id) : null;
+    if (!gid) continue;
+    const a = agg.get(gid) ?? { qtd: 0, valor: 0 };
+    a.qtd += i.quantidade; a.valor += i.quantidade * Number(i.preco_unitario);
+    agg.set(gid, a);
+  }
+  return [...agg].map(([gid, a]) => ({
+    produto: { produto_id: gid, quantidade: String(a.qtd), valor_venda: (a.valor / a.qtd).toFixed(2) },
+  }));
+}
+
+/** Registers a site order as a "Concretizada" sale in GestãoClick (which lowers its stock there). */
+export async function registrarVendaGestaoClick(pedidoId: string, client?: Db) {
+  const db = await getDb(client);
+  const { data: p } = await db.from("pedidos").select("id,cliente_nome,cliente_whatsapp,criado_em,gestaoclick_venda_id,desconto_cupom,status").eq("id", pedidoId).maybeSingle();
+  if (!p || p.gestaoclick_venda_id || p.status === "cancelado") return null;
+  const produtos = await itensVendaGc(db, pedidoId);
+  if (!produtos.length) return null;
+  try {
+    const cliente_id = await gcClienteId(p.cliente_nome ?? "", p.cliente_whatsapp);
+    const body = {
+      tipo: "produto", cliente_id, situacao_id: SIT_CONCRETIZADA,
+      data: String(p.criado_em ?? new Date().toISOString()).slice(0, 10),
+      nome_canal_venda: "Site", observacoes: `Pedido do site #${pedidoId.slice(0, 8)}`,
+      desconto_valor: Number(p.desconto_cupom ?? 0).toFixed(2), produtos,
+    };
+    const r = await fetch(`${BASE}/vendas`, { method: "POST", headers: headers(), body: JSON.stringify(body) });
+    const j = await gcJson(r);
+    if (j?.code !== 200 || !j.data?.id) throw new Error(j?.data?.mensagem ?? `Erro ${r.status}`);
+    const vid = String(j.data.id);
+    await db.from("pedidos").update({ gestaoclick_venda_id: vid } as any).eq("id", pedidoId);
+    await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: vid, nome: `Venda ${j.data.codigo ?? ""} (pedido ${pedidoId.slice(0, 8)})`, ok: true, mensagem: "Venda registrada no Gestão Click" });
+    return vid;
+  } catch (e) {
+    console.error("[gestaoclick] venda", pedidoId, e);
+    await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: "-", nome: `Pedido ${pedidoId.slice(0, 8)}`, ok: false, mensagem: `Falha ao registrar venda: ${String((e as Error).message ?? e).slice(0, 250)}` });
+    return null;
+  }
+}
+
+/** Keeps the GestãoClick sale in step with the order status (cancel returns stock there). */
+export async function atualizarVendaGestaoClick(pedidoId: string, status: string, client?: Db) {
+  const db = await getDb(client);
+  const { data: p } = await db.from("pedidos").select("gestaoclick_venda_id,cliente_nome,cliente_whatsapp,criado_em").eq("id", pedidoId).maybeSingle();
+  if (!p) return;
+  if (!p.gestaoclick_venda_id) {
+    if (status !== "cancelado") await registrarVendaGestaoClick(pedidoId, client);
+    return;
+  }
+  try {
+    const produtos = await itensVendaGc(db, pedidoId);
+    const cliente_id = await gcClienteId(p.cliente_nome ?? "", p.cliente_whatsapp);
+    const body = {
+      tipo: "produto", cliente_id, data: String(p.criado_em ?? "").slice(0, 10) || new Date().toISOString().slice(0, 10),
+      situacao_id: status === "cancelado" ? SIT_CANCELADA : SIT_CONCRETIZADA, produtos,
+    };
+    const r = await fetch(`${BASE}/vendas/${p.gestaoclick_venda_id}`, { method: "PUT", headers: headers(), body: JSON.stringify(body) });
+    const j = await gcJson(r);
+    if (j?.code !== 200) throw new Error(j?.data?.mensagem ?? `Erro ${r.status}`);
+    await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: p.gestaoclick_venda_id, nome: `Pedido ${pedidoId.slice(0, 8)}`, ok: true, mensagem: status === "cancelado" ? "Venda cancelada no Gestão Click" : "Venda reativada no Gestão Click" });
+  } catch (e) {
+    console.error("[gestaoclick] venda status", pedidoId, e);
+    await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: p.gestaoclick_venda_id, nome: `Pedido ${pedidoId.slice(0, 8)}`, ok: false, mensagem: `Falha ao atualizar venda: ${String((e as Error).message ?? e).slice(0, 250)}` });
+  }
+}
