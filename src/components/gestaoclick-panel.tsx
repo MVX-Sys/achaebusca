@@ -6,6 +6,7 @@ import { RefreshCw, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   autoLinkGestaoClick,
+  criarFaltantesGestaoClick,
   GC_LOTE_CLIENTE,
   linkGestaoClick,
   listGestaoClickProdutos,
@@ -20,6 +21,7 @@ export function GestaoClickPanel() {
   const link = useServerFn(linkGestaoClick);
   const autoLink = useServerFn(autoLinkGestaoClick);
   const sync = useServerFn(syncGestaoClick);
+  const criarFaltantes = useServerFn(criarFaltantesGestaoClick);
   const listVinc = useServerFn(listVinculadosGestaoClick);
   const maoDupla = useServerFn(syncMaoDuplaGestaoClick);
   const [aberto, setAberto] = useState(false);
