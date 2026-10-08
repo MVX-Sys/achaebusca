@@ -518,22 +518,28 @@ function PedidoDetalhesModal({ pedido, onClose }: { pedido: PedidoRow; onClose: 
     setGerandoPdf(true);
     try {
       await downloadOrderPDF({
-        items: (pedido.itens || []).map((it) => ({
-          key: it.id,
-          variacaoId: "",
-          hexCor: "",
-          produtoId: it.produto_id || "",
-          nome: it.nome_produto,
-          cor: it.cor || "",
-          tamanho: it.tamanho || "",
-          quantidade: it.quantidade,
-          preco: Number(it.preco_unitario),
-          precoPromocional: null,
-          promocaoAte: null,
-          codigo: (it.detalhes as { codigo?: string } | null)?.codigo ?? null,
-          foto: it.imagem_url || null,
-          personalizacoes: it.detalhes?.personalizacoes || [],
-        })),
+        items: (pedido.itens || []).map((it: any) => {
+          const det = (it.detalhes || {}) as any;
+          const perso = Array.isArray(det.personalizacoes) ? det.personalizacoes : [];
+          const extras = perso.reduce((s: number, o: any) => s + (Number(o?.preco) || 0), 0);
+          return {
+            key: it.id,
+            variacaoId: it.variacao_id || "",
+            hexCor: "",
+            produtoId: it.produto_id || "",
+            nome: it.nome_produto || det.nome || "Produto",
+            cor: it.cor || det.cor || "",
+            tamanho: it.tamanho || det.tamanho || "",
+            quantidade: Number(it.quantidade) || 0,
+            // preco_unitario já inclui as personalizações; o PDF soma de novo
+            preco: Number(it.preco_unitario) - extras,
+            precoPromocional: null,
+            promocaoAte: null,
+            codigo: det.codigo ?? it.codigo ?? null,
+            foto: it.imagem_url || null,
+            personalizacoes: perso,
+          };
+        }),
         total: Number(pedido.total),
         formaEnvio: pedido.forma_envio || "—",
         formaEntrega: pedido.endereco?.formaEntrega,
