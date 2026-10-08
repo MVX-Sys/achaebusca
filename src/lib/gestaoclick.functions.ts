@@ -80,6 +80,15 @@ export const syncMaoDuplaGestaoClick = createServerFn({ method: "POST" })
     return await syncMaoDupla(context.supabase);
   });
 
+/** Creates in GestãoClick the active products that exist only on the site. */
+export const criarFaltantesGestaoClick = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { criarFaltantesNoGestaoClick } = await import("./gestaoclick.server");
+    return await criarFaltantesNoGestaoClick(context.supabase);
+  });
+
 export const exportarGestaoClick = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

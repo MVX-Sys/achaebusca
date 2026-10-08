@@ -6,6 +6,7 @@ import { RefreshCw, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   autoLinkGestaoClick,
+  criarFaltantesGestaoClick,
   GC_LOTE_CLIENTE,
   linkGestaoClick,
   listGestaoClickProdutos,
@@ -20,6 +21,7 @@ export function GestaoClickPanel() {
   const link = useServerFn(linkGestaoClick);
   const autoLink = useServerFn(autoLinkGestaoClick);
   const sync = useServerFn(syncGestaoClick);
+  const criarFaltantes = useServerFn(criarFaltantesGestaoClick);
   const listVinc = useServerFn(listVinculadosGestaoClick);
   const maoDupla = useServerFn(syncMaoDuplaGestaoClick);
   const [aberto, setAberto] = useState(false);
@@ -87,6 +89,25 @@ export function GestaoClickPanel() {
             className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
           >
             Vincular pelo nome
+          </button>
+          <button
+            disabled={ocupado}
+            onClick={() =>
+              rodar(async () => {
+                let r = await criarFaltantes();
+                const t = { ...r };
+                for (let i = 0; r.restantes && i < 30; i++) {
+                  r = await criarFaltantes();
+                  t.criados += r.criados; t.erros += r.erros;
+                }
+                return t.total === 0
+                  ? "Nenhum produto só do site — tudo já está no Gestão Click"
+                  : `Criados no Gestão Click: ${t.criados}${t.erros ? ` · ${t.erros} com erro` : ""}`;
+              })
+            }
+            className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
+          >
+            Enviar produtos do site
           </button>
           <button
             disabled={ocupado}
