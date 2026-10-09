@@ -43,8 +43,8 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-3 text-[11px] text-white/75 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {BRAND}. Todos os direitos reservados.</p>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="font-semibold uppercase tracking-wider">MVX Sistemas</span>
+          <div className="flex flex-col sm:items-end">
+            <span>Desenvolvido pela MVX Sistemas</span>
             <a
               href={MVX_INSTAGRAM}
               target="_blank"
@@ -54,24 +54,6 @@ export function SiteFooter() {
             >
               <Instagram className="h-3 w-3" />
               @mvx_sistemas
-            </a>
-            <a
-              href={`https://wa.me/${MVX_WHATSAPP_1.link}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 hover:text-white"
-            >
-              <MessageCircle className="h-3 w-3" />
-              {MVX_WHATSAPP_1.display}
-            </a>
-            <a
-              href={`https://wa.me/${MVX_WHATSAPP_2.link}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 hover:text-white"
-            >
-              <MessageCircle className="h-3 w-3" />
-              {MVX_WHATSAPP_2.display}
             </a>
           </div>
         </div>
