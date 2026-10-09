@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/config";
 import { canAccess, hasAdminPanelAccess, type PermissionKey } from "@/lib/permissions";
-import { LogOut, Package, Loader2, ExternalLink, Bell, History, Users, Database, UserPlus, TrendingUp, Menu, Ticket, Settings, Tags, Boxes, Wrench, RefreshCw } from "lucide-react";
+import { LogOut, Package, Loader2, ExternalLink, Bell, History, Users, Database, UserPlus, TrendingUp, Menu, Ticket, QrCode, Tags, Boxes, Wrench, RefreshCw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -34,12 +34,12 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin/atendentes", label: "Atendentes", icon: <UserPlus className="h-4 w-4" />, perm: "usuarios.manage" },
   { to: "/admin/vendas", label: "Vendas", icon: <TrendingUp className="h-4 w-4" />, perm: "pedidos.view" },
   { to: "/admin/cupons", label: "Cupons", icon: <Ticket className="h-4 w-4" />, perm: "cupons.manage" },
+  { to: "/admin/pix", label: "PIX", icon: <QrCode className="h-4 w-4" />, perm: "admin.advanced" },
   { to: "/admin/solicitacoes", label: "Reposições", icon: <Bell className="h-4 w-4" />, perm: "solicitacoes.manage" },
   { to: "/admin/usuarios", label: "Usuários", icon: <Users className="h-4 w-4" />, perm: "usuarios.manage" },
   { to: "/admin/gestaoclick", label: "Gestão Click", icon: <RefreshCw className="h-4 w-4" />, perm: "produtos.manage", tech: true },
   { to: "/admin/backup", label: "Backup", icon: <Database className="h-4 w-4" />, perm: "backup.manage", tech: true },
   { to: "/admin/auditoria", label: "Auditoria", icon: <History className="h-4 w-4" />, perm: "auditoria.view", tech: true },
-  { to: "/admin/avancado", label: "Avançado", icon: <Settings className="h-4 w-4" />, perm: "admin.advanced", tech: true },
   { to: "/admin/manutencao", label: "Manutenção", icon: <Wrench className="h-4 w-4" />, perm: "admin.advanced", tech: true },
 ];
 

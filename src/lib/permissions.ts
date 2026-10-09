@@ -50,8 +50,8 @@ export const ALL_PERMISSIONS: {
   },
   {
     key: "admin.advanced",
-    label: "Acesso Avançado",
-    description: "Visualizar estatísticas técnicas e uso de recursos do sistema.",
+    label: "Acesso técnico",
+    description: "Abas técnicas do painel, como Manutenção e PIX.",
   },
 ];
 
