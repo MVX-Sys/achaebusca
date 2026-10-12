@@ -41,7 +41,7 @@ export function GestaoClickImportar() {
       else n[g.id] = { preco: g.atacado > 0 ? "atacado" : "varejo", codigo: limpa(g.codigo_interno || g.nome) || `GC${g.id}`, fotos: g.fotos.slice(0, 1), locais: [], link: "", cores: [], ativo: true };
       return n;
     });
-  const muda = (id: string, p: Partial<Escolha>) => setSel((s) => ({ ...s, [id]: { ...s[id], ...p } }));
+  const muda = (id: string, p: Partial<Escolha>) => setSel((s) => ({ ...s, [id]: { ...({ fotos: [], locais: [], link: "", cores: [] } as Partial<Escolha>), ...s[id], ...p } as Escolha }));
 
   async function importarTudo() {
     const escolhidos = itens.filter((g) => sel[g.id]);
@@ -119,8 +119,8 @@ export function GestaoClickImportar() {
               return (
                 <div key={g.id} className="flex flex-wrap items-center gap-2 p-2 text-sm">
                   <input type="checkbox" className="h-4 w-4 accent-primary" checked={!!e} onChange={() => toggle(g)} />
-                  {(e?.fotos[0] || g.fotos[0]) ? (
-                    <img src={e?.fotos[0] || g.fotos[0]} alt="" className="h-10 w-10 rounded object-cover" loading="lazy" />
+                  {(e?.fotos?.[0] || g.fotos[0]) ? (
+                    <img src={e?.fotos?.[0] || g.fotos[0]} alt="" className="h-10 w-10 rounded object-cover" loading="lazy" />
                   ) : (
                     <div className="h-10 w-10 rounded bg-muted" />
                   )}
@@ -133,7 +133,7 @@ export function GestaoClickImportar() {
                   {e && (
                     <>
                       <span className="text-xs text-muted-foreground">
-                        {e.preco === "atacado" ? "Atacado" : "Varejo"} · {e.codigo || "sem código"} · {e.cores.length || 1} cor(es) · {e.fotos.length + e.locais.length + (e.link.trim() ? 1 : 0)} foto(s)
+                        {e.preco === "atacado" ? "Atacado" : "Varejo"} · {e.codigo || "sem código"} · {e.cores?.length || 1} cor(es) · {(e.fotos?.length ?? 0) + (e.locais?.length ?? 0) + (e.link?.trim() ? 1 : 0)} foto(s)
                       </span>
                       <button onClick={() => setEditando(g.id)} className="flex h-8 items-center gap-1 rounded-md border border-input px-2 text-xs hover:bg-accent">
                         <Settings2 className="h-3.5 w-3.5" /> Ajustar
