@@ -41,7 +41,7 @@ export function GestaoClickImportar() {
       else n[g.id] = { preco: g.atacado > 0 ? "atacado" : "varejo", codigo: limpa(g.codigo_interno || g.nome) || `GC${g.id}`, fotos: g.fotos.slice(0, 1), locais: [], link: "", cores: [], ativo: true };
       return n;
     });
-  const muda = (id: string, p: Partial<Escolha>) => setSel((s) => ({ ...s, [id]: { fotos: [], locais: [], link: "", cores: [], ...s[id], ...p } }));
+  const muda = (id: string, p: Partial<Escolha>) => setSel((s) => ({ ...s, [id]: { ...({ fotos: [], locais: [], link: "", cores: [] } as Partial<Escolha>), ...s[id], ...p } as Escolha }));
 
   async function importarTudo() {
     const escolhidos = itens.filter((g) => sel[g.id]);
