@@ -137,7 +137,10 @@ export const importarSelecionadosGc = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ itens: z.array(z.object({
     gcId: z.string().min(1).max(40), nome: z.string().min(1).max(300), preco: z.number().min(0).max(1e7),
-    codigo: z.string().regex(/^[A-Za-z0-9]{1,20}$/), imagemUrl: z.string().url().max(2000).nullable(),
+    codigo: z.string().regex(/^[A-Za-z0-9]{1,20}$/),
+    imagemUrls: z.array(z.string().url().max(2000)).max(10),
+    storagePaths: z.array(z.string().regex(/^gc-import\/[A-Za-z0-9-]+\.[a-z0-9]{2,5}$/)).max(10),
+    cores: z.array(z.object({ nome: z.string().min(1).max(40), hex: z.string().regex(/^#[0-9a-fA-F]{6}$/), estoque: z.number().int().min(0).max(1e7) })).max(30),
     estoque: z.number().int().min(0).max(1e7), ativo: z.boolean(),
   })).min(1).max(12) }).parse(d))
   .handler(async ({ data, context }) => {
