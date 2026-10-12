@@ -413,3 +413,63 @@ export async function atualizarVendaGestaoClick(pedidoId: string, status: string
     await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: p.gestaoclick_venda_id, nome: `Pedido ${pedidoId.slice(0, 8)}`, ok: false, mensagem: `Falha ao atualizar venda: ${String((e as Error).message ?? e).slice(0, 250)}` });
   }
 }
+
+// ---- Seleção para importação (escolha de preço, código e imagem por item) ----
+export type GcImportavel = {
+  id: string; nome: string; codigo_interno: string; estoque: number;
+  atacado: number; varejo: number; fotos: string[]; vinculado: boolean;
+};
+
+function fotosGc(p: any): string[] {
+  const arr = Array.isArray(p?.fotos) ? p.fotos : [];
+  return arr.map((f: any) => (typeof f === "string" ? f : f?.url ?? f?.foto ?? f?.link)).filter((u: any) => typeof u === "string" && /^https?:\/\//.test(u));
+}
+
+export async function gcListImportaveis(client?: Db): Promise<GcImportavel[]> {
+  const db = await getDb(client);
+  const { data: prods } = await db.from("produtos").select("gestaoclick_id").not("gestaoclick_id", "is", null);
+  const ligados = new Set((prods ?? []).map((p) => p.gestaoclick_id));
+  const out: GcImportavel[] = [];
+  for (let pagina = 1; pagina <= 50; pagina++) {
+    const r = await fetch(`${BASE}/produtos?limite=100&pagina=${pagina}`, { headers: headers() });
+    const j: any = await r.json();
+    if (j?.code !== 200) throw new Error(j?.data?.mensagem ?? "Erro no Gestão Click");
+    for (const p of j.data ?? [])
+      out.push({
+        id: String(p.id), nome: p.nome, codigo_interno: p.codigo_interno ?? "", estoque: Number(p.estoque) || 0,
+        atacado: precoAtacado(p), varejo: Number(p.valor_venda) || 0, fotos: fotosGc(p), vinculado: ligados.has(String(p.id)),
+      });
+    if (!j.meta?.proxima_pagina) break;
+  }
+  return out;
+}
+
+export type ItemImportar = { gcId: string; nome: string; preco: number; codigo: string; imagemUrl: string | null; estoque: number; ativo: boolean };
+
+export async function importarSelecionados(client: Db | undefined, itens: ItemImportar[]) {
+  const db = await getDb(client);
+  let criados = 0; const erros: string[] = [];
+  for (const it of itens) {
+    try {
+      const { data: prod, error } = await db.from("produtos")
+        .insert({ nome: it.nome, preco: it.preco, codigo_base: it.codigo, ativo: it.ativo, gestaoclick_id: it.gcId } as any)
+        .select("id").single();
+      if (error || !prod) throw new Error(error?.message ?? "falha ao criar");
+      await db.from("variacoes_produto").insert({ produto_id: prod.id, nome_cor: "Única", hex_cor: "#888888", tamanho: "U", quantidade_estoque: Math.max(0, it.estoque) });
+      if (it.imagemUrl) {
+        try {
+          const r = await fetch(it.imagemUrl);
+          if (!r.ok) throw new Error(`imagem ${r.status}`);
+          const tipo = r.headers.get("content-type") ?? "image/jpeg";
+          const ext = (tipo.split("/")[1] ?? "jpg").split(";")[0].replace("jpeg", "jpg");
+          const path = `${prod.id}/gc-${Date.now()}.${ext}`;
+          const { error: upErr } = await db.storage.from("product-images").upload(path, await r.arrayBuffer(), { contentType: tipo, upsert: true });
+          if (upErr) throw upErr;
+          await db.from("imagens_produto").insert({ produto_id: prod.id, storage_path: path, principal: true, ordem: 0 });
+        } catch (e) { erros.push(`${it.nome}: imagem não enviada (${(e as Error).message})`); }
+      }
+      criados++;
+    } catch (e) { erros.push(`${it.nome}: ${(e as Error).message}`); }
+  }
+  return { criados, erros };
+}
