@@ -124,3 +124,24 @@ export const aplicarRestauracaoGc = createServerFn({ method: "POST" })
     const { aplicarRestauracao } = await import("./gestaoclick.server");
     return await aplicarRestauracao(context.supabase, data.mudancas);
   });
+
+export const listImportaveisGc = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context);
+    const { gcListImportaveis } = await import("./gestaoclick.server");
+    return await gcListImportaveis(context.supabase);
+  });
+
+export const importarSelecionadosGc = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ itens: z.array(z.object({
+    gcId: z.string().min(1).max(40), nome: z.string().min(1).max(300), preco: z.number().min(0).max(1e7),
+    codigo: z.string().regex(/^[A-Za-z0-9]{1,20}$/), imagemUrl: z.string().url().max(2000).nullable(),
+    estoque: z.number().int().min(0).max(1e7), ativo: z.boolean(),
+  })).min(1).max(12) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context);
+    const { importarSelecionados } = await import("./gestaoclick.server");
+    return await importarSelecionados(context.supabase, data.itens);
+  });

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
 import { GestaoClickPanel } from "@/components/gestaoclick-panel";
 import { GestaoClickConferencia } from "@/components/gestaoclick-conferencia";
+import { GestaoClickImportar } from "@/components/gestaoclick-importar";
 
 export const Route = createFileRoute("/_authenticated/admin/gestaoclick")({
   head: () => ({ meta: [{ title: "Gestão Click — Painel" }] }),
@@ -16,6 +17,7 @@ function GestaoClickPage() {
         <h1 className="font-display text-2xl font-semibold">Gestão Click</h1>
       </div>
       <GestaoClickPanel />
+      <GestaoClickImportar />
       <GestaoClickConferencia />
     </div>
   );
