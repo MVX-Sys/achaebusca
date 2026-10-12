@@ -5,25 +5,21 @@ import { toast } from "sonner";
 import { RefreshCw, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  autoLinkGestaoClick,
   criarFaltantesGestaoClick,
   GC_LOTE_CLIENTE,
   linkGestaoClick,
   listGestaoClickProdutos,
   listVinculadosGestaoClick,
   syncGestaoClick,
-  syncMaoDuplaGestaoClick,
 } from "@/lib/gestaoclick.functions";
 
 export function GestaoClickPanel() {
   const qc = useQueryClient();
   const listGc = useServerFn(listGestaoClickProdutos);
   const link = useServerFn(linkGestaoClick);
-  const autoLink = useServerFn(autoLinkGestaoClick);
   const sync = useServerFn(syncGestaoClick);
   const criarFaltantes = useServerFn(criarFaltantesGestaoClick);
   const listVinc = useServerFn(listVinculadosGestaoClick);
-  const maoDupla = useServerFn(syncMaoDuplaGestaoClick);
   const [aberto, setAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -82,18 +78,6 @@ export function GestaoClickPanel() {
             disabled={ocupado}
             onClick={() =>
               rodar(async () => {
-                const r = await autoLink();
-                return `${r.vinculados} produto(s) vinculado(s) pelo nome`;
-              })
-            }
-            className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
-          >
-            Vincular pelo nome
-          </button>
-          <button
-            disabled={ocupado}
-            onClick={() =>
-              rodar(async () => {
                 let r = await criarFaltantes();
                 const t = { ...r };
                 for (let i = 0; r.restantes && i < 30; i++) {
@@ -108,23 +92,6 @@ export function GestaoClickPanel() {
             className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
           >
             Enviar produtos do site
-          </button>
-          <button
-            disabled={ocupado}
-            onClick={() =>
-              rodar(async () => {
-                let r = await maoDupla();
-                const t = { ...r };
-                for (let i = 0; r.restantes && i < 20; i++) {
-                  r = await maoDupla();
-                  t.atualizados += r.atualizados; t.desativadosSite += r.desativadosSite; t.criadosSite += r.criadosSite; t.criadosGc += r.criadosGc; t.desativadosGc += r.desativadosGc;
-                }
-                return `Atualizados: ${t.atualizados} · Novos no site: ${t.criadosSite} (inativos) · Novos no Gestão Click: ${t.criadosGc} · Desativados: ${t.desativadosSite + t.desativadosGc}`;
-              })
-            }
-            className="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent"
-          >
-            Sincronizar produtos (2 lados)
           </button>
           <button
             disabled={ocupado}
