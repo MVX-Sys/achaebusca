@@ -444,7 +444,10 @@ export async function gcListImportaveis(client?: Db): Promise<GcImportavel[]> {
   return out;
 }
 
-export type ItemImportar = { gcId: string; nome: string; preco: number; codigo: string; imagemUrl: string | null; estoque: number; ativo: boolean };
+export type ItemImportar = {
+  gcId: string; nome: string; preco: number; codigo: string; imagemUrls: string[]; storagePaths: string[];
+  cores: { nome: string; hex: string; estoque: number }[]; estoque: number; ativo: boolean;
+};
 
 export async function importarSelecionados(client: Db | undefined, itens: ItemImportar[]) {
   const db = await getDb(client);
@@ -455,19 +458,25 @@ export async function importarSelecionados(client: Db | undefined, itens: ItemIm
         .insert({ nome: it.nome, preco: it.preco, codigo_base: it.codigo, ativo: it.ativo, gestaoclick_id: it.gcId } as any)
         .select("id").single();
       if (error || !prod) throw new Error(error?.message ?? "falha ao criar");
-      await db.from("variacoes_produto").insert({ produto_id: prod.id, nome_cor: "Única", hex_cor: "#888888", tamanho: "U", quantidade_estoque: Math.max(0, it.estoque) });
-      if (it.imagemUrl) {
+      const cores = it.cores.length ? it.cores : [{ nome: "Única", hex: "#888888", estoque: it.estoque }];
+      await db.from("variacoes_produto").insert(cores.map((c) => ({
+        produto_id: prod.id, nome_cor: c.nome, hex_cor: c.hex, tamanho: "U", quantidade_estoque: Math.max(0, c.estoque),
+      })));
+      const paths: string[] = [...it.storagePaths];
+      for (const url of it.imagemUrls) {
         try {
-          const r = await fetch(it.imagemUrl);
+          const r = await fetch(url);
           if (!r.ok) throw new Error(`imagem ${r.status}`);
           const tipo = r.headers.get("content-type") ?? "image/jpeg";
           const ext = (tipo.split("/")[1] ?? "jpg").split(";")[0].replace("jpeg", "jpg");
-          const path = `${prod.id}/gc-${Date.now()}.${ext}`;
+          const path = `${prod.id}/gc-${crypto.randomUUID()}.${ext}`;
           const { error: upErr } = await db.storage.from("product-images").upload(path, await r.arrayBuffer(), { contentType: tipo, upsert: true });
           if (upErr) throw upErr;
-          await db.from("imagens_produto").insert({ produto_id: prod.id, storage_path: path, principal: true, ordem: 0 });
+          paths.push(path);
         } catch (e) { erros.push(`${it.nome}: imagem não enviada (${(e as Error).message})`); }
       }
+      if (paths.length)
+        await db.from("imagens_produto").insert(paths.map((sp, i) => ({ produto_id: prod.id, storage_path: sp, principal: i === 0, ordem: i })));
       criados++;
     } catch (e) { erros.push(`${it.nome}: ${(e as Error).message}`); }
   }
