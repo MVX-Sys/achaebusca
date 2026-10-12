@@ -78,7 +78,7 @@ export function GestaoClickPanel() {
             disabled={ocupado}
             onClick={() =>
               rodar(async () => {
-                const r = await criarFaltantes();
+                let r = await criarFaltantes();
                 const t = { ...r };
                 for (let i = 0; r.restantes && i < 30; i++) {
                   r = await criarFaltantes();
