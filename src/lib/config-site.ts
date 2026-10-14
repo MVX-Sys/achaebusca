@@ -16,6 +16,8 @@ export type HeroSlide = {
 export type SiteConfig = {
   id: string;
   hero_slides: HeroSlide[];
+  destaques_novidades: string[];
+  destaques_ofertas: string[];
 };
 
 /** Extrai o caminho do arquivo caso um link (assinado/público) tenha sido salvo. */
@@ -53,7 +55,18 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     }),
   );
 
-  return { id: "current", hero_slides: resolved };
+  const { data: cfg } = await supabase
+    .from("site_config")
+    .select("destaques_novidades, destaques_ofertas")
+    .eq("id", "current")
+    .maybeSingle();
+
+  return {
+    id: "current",
+    hero_slides: resolved,
+    destaques_novidades: ((cfg as any)?.destaques_novidades as string[]) ?? [],
+    destaques_ofertas: ((cfg as any)?.destaques_ofertas as string[]) ?? [],
+  };
 }
 
 
