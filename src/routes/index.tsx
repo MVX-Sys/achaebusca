@@ -61,15 +61,24 @@ function Home() {
 
   });
 
-  const novidades = useMemo(() => 
-    produtos.filter((p: ProductListItem) => p.ativo && p.novidade && !isEsgotado(p)).slice(0, 4),
-  [produtos]);
+  const escolhidos = (ids: string[] | undefined) =>
+    (ids ?? [])
+      .map((id) => produtos.find((p: ProductListItem) => p.id === id))
+      .filter((p): p is ProductListItem => !!p && p.ativo && !isEsgotado(p));
 
-  const melhoresOfertas = useMemo(() => 
-    produtos.filter((p: ProductListItem) => p.ativo && getPromoInfo(p).ativa && !isEsgotado(p))
+  const novidades = useMemo(() => {
+    const sel = escolhidos(config?.destaques_novidades);
+    if (sel.length > 0) return sel;
+    return produtos.filter((p: ProductListItem) => p.ativo && p.novidade && !isEsgotado(p)).slice(0, 4);
+  }, [produtos, config?.destaques_novidades]);
+
+  const melhoresOfertas = useMemo(() => {
+    const sel = escolhidos(config?.destaques_ofertas);
+    if (sel.length > 0) return sel;
+    return produtos.filter((p: ProductListItem) => p.ativo && getPromoInfo(p).ativa && !isEsgotado(p))
       .sort((a: ProductListItem, b: ProductListItem) => getPromoInfo(b).percentual - getPromoInfo(a).percentual)
-      .slice(0, 4),
-  [produtos]);
+      .slice(0, 4);
+  }, [produtos, config?.destaques_ofertas]);
 
   return (
     <div className="min-h-screen bg-background font-body">

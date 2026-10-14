@@ -1,0 +1,2 @@
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS destaques_novidades uuid[] NOT NULL DEFAULT '{}';
+ALTER TABLE public.site_config ADD COLUMN IF NOT EXISTS destaques_ofertas uuid[] NOT NULL DEFAULT '{}';

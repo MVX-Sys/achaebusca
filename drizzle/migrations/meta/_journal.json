@@ -99,6 +99,13 @@
       "when": 1791477512898,
       "tag": "0013_pedidos_gestaoclick_venda",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791993935541,
+      "tag": "0014_home_destaques",
+      "breakpoints": true
     }
   ]
 }
