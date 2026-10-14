@@ -509,6 +509,8 @@ export type Database = {
       }
       site_config: {
         Row: {
+          destaques_novidades: string[]
+          destaques_ofertas: string[]
           hero_media_url: string | null
           hero_subtitle: string | null
           hero_title: string | null
@@ -525,6 +527,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          destaques_novidades?: string[]
+          destaques_ofertas?: string[]
           hero_media_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
@@ -541,6 +545,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          destaques_novidades?: string[]
+          destaques_ofertas?: string[]
           hero_media_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
