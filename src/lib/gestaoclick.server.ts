@@ -378,7 +378,13 @@ export async function registrarVendaGestaoClick(pedidoId: string, client?: Db) {
     const j = await gcJson(r);
     if (j?.code !== 200 || !j.data?.id) throw new Error(j?.data?.mensagem ?? `Erro ${r.status}`);
     const vid = String(j.data.id);
-    await db.from("pedidos").update({ gestaoclick_venda_id: vid } as any).eq("id", pedidoId);
+    let saveDb: Db = db;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      saveDb = supabaseAdmin as unknown as Db;
+    } catch { /* sem chave admin: usa o cliente atual */ }
+    const { error: saveErr } = await saveDb.from("pedidos").update({ gestaoclick_venda_id: vid } as any).eq("id", pedidoId);
+    if (saveErr) console.error("[gestaoclick] falha ao salvar id da venda", pedidoId, saveErr);
     await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: vid, nome: `Venda ${j.data.codigo ?? ""} (pedido ${pedidoId.slice(0, 8)})`, ok: true, mensagem: "Venda registrada no Gestão Click" });
     return vid;
   } catch (e) {
@@ -394,7 +400,8 @@ export async function atualizarVendaGestaoClick(pedidoId: string, status: string
   const { data: p } = await db.from("pedidos").select("gestaoclick_venda_id,cliente_nome,cliente_whatsapp,criado_em").eq("id", pedidoId).maybeSingle();
   if (!p) return;
   if (!p.gestaoclick_venda_id) {
-    if (status !== "cancelado") await registrarVendaGestaoClick(pedidoId, client);
+    // Nunca cria uma venda nova ao mudar o status: evita pedidos duplicados no Gestão Click.
+    await db.from("gestaoclick_sync_log").insert({ gestaoclick_id: "-", nome: `Pedido ${pedidoId.slice(0, 8)}`, ok: false, mensagem: "Status não enviado: pedido sem venda vinculada no Gestão Click" });
     return;
   }
   try {
