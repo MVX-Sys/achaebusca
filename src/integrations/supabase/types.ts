@@ -436,6 +436,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pix_chaves: {
+        Row: {
+          ativo: boolean
+          banco: string | null
+          chave: string
+          cidade: string | null
+          criado_em: string
+          id: string
+          nome_recebedor: string
+          principal: boolean
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean
+          banco?: string | null
+          chave: string
+          cidade?: string | null
+          criado_em?: string
+          id?: string
+          nome_recebedor: string
+          principal?: boolean
+          tipo: string
+        }
+        Update: {
+          ativo?: boolean
+          banco?: string | null
+          chave?: string
+          cidade?: string | null
+          criado_em?: string
+          id?: string
+          nome_recebedor?: string
+          principal?: boolean
+          tipo?: string
+        }
+        Relationships: []
+      }
       produtos: {
         Row: {
           ativo: boolean
